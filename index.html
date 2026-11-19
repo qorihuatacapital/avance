@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Avance contable mensual</title>
+<style>
+:root{--bg:#f2f0fb;--sf:#fff;--fg:#1b1b2f;--mu:#5d5a78;--ln:#dcd7f2;--nv:#4f35c8;--soft:#e9e5fa;--ok:#2e7d32;--bad:#c62828;--gold:#b8862a;
+--s1:#4f35c8;--s2:#b8862a;--s3:#4f35c8;--s4:#b8862a;--s5:#4f35c8;--s6:#b8862a;--s7:#4f35c8;--s8:#b8862a}
+header{border-bottom:10px solid transparent;border-image:repeating-linear-gradient(90deg,#b8862a 0 14px,#1b1b2f 14px 28px,#c4baf0 28px 42px,#1b1b2f 42px 56px) 10}
+.lbl,.meta,.note{font-family:ui-monospace,"IBM Plex Mono",Consolas,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 "Segoe UI",Roboto,system-ui,sans-serif}
+header{background:var(--nv);color:#fff;padding:16px}
+h1{margin:0;font-size:20px;font-weight:800}
+header p{margin:2px 0 0;opacity:.8;font-size:13px}
+main{padding:14px 12px 40px;max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.lbl{font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mu);margin:0 0 8px}
+.who{display:flex;flex-wrap:wrap;gap:8px}
+.who button{font:inherit;font-weight:600;padding:10px 16px;border-radius:999px;border:1.5px solid var(--ln);background:var(--sf);color:var(--fg);cursor:pointer}
+.who button[aria-pressed=true]{background:var(--nv);border-color:var(--nv);color:#fff}
+.box{background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:14px}
+.note{font-size:13px;color:var(--mu);margin:0}
+#list{display:flex;flex-direction:column;gap:10px}
+.ask{text-align:center;padding:22px 16px}
+.ask .q{font-size:15px;color:var(--mu);margin:0}
+.ask .emp{font-size:19px;font-weight:800;margin:8px 0 18px;overflow-wrap:anywhere}
+.ask .yn{display:flex;gap:10px;justify-content:center}
+.ask .yn .btn{min-width:110px;font-size:16px;padding:12px 18px}
+.prog{height:6px;border-radius:4px;background:var(--soft);overflow:hidden;margin-top:16px}
+.prog i{display:block;height:100%;background:var(--nv)}
+.addrow{display:flex;gap:8px;flex-wrap:wrap}
+.rehead{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--ln)}
+.re{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--ln);cursor:pointer}
+.re input{width:22px;height:22px;accent-color:var(--nv);flex:none;margin:0}
+.re span{flex:1;font-weight:600;font-size:14px;overflow-wrap:anywhere}
+.re b{font-size:12px;color:var(--ok);white-space:nowrap}
+.re.on{background:#ece8fb}
+select#mes{font:inherit;font-weight:600;padding:9px 12px;border:1.5px solid var(--ln);border-radius:8px;background:var(--sf);color:var(--fg)}
+.bk{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}
+.bk small{width:100%;font-size:12px;color:var(--mu)}
+.bk label{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:6px 10px;border:1.5px solid var(--ln);border-radius:999px;cursor:pointer;background:var(--sf)}
+.bk label.on{border-color:var(--gold);background:#f6ecd7;color:#7a5615}
+.bk input{width:16px;height:16px;margin:0;accent-color:var(--s2)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:13px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--soft)}
+details{background:var(--sf);border:1px solid var(--ln);border-radius:10px;overflow:hidden}
+summary{list-style:none;cursor:pointer;padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center}
+summary::-webkit-details-marker{display:none}
+.nm{font-weight:700;overflow-wrap:anywhere}
+.pc{font:700 17px ui-monospace,Consolas,monospace}
+.bar{grid-column:1/-1;height:7px;border-radius:4px;background:var(--soft);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--nv)}
+.meta{grid-column:1/-1;font-size:12px;color:var(--mu)}
+.steps{border-top:1px solid var(--ln);padding:4px 14px 14px}
+.st{display:grid;grid-template-columns:1fr 52px;gap:2px 10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--ln)}
+.st b{grid-column:1/-1;font-size:13px;border-left:5px solid var(--c);padding-left:8px}
+.st b small{color:var(--mu);font-weight:400}
+.st span{font:700 15px ui-monospace,Consolas,monospace;text-align:right}
+.st.done span{color:var(--ok)}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:30px;background:transparent;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:10px;border-radius:6px;background:linear-gradient(to right,var(--c) var(--p),var(--soft) var(--p))}
+input[type=range]::-moz-range-track{height:10px;border-radius:6px;background:linear-gradient(to right,var(--c) var(--p),var(--soft) var(--p))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;border:3px solid var(--c);margin-top:-8px;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--c)}
+input[type=text]{flex:1;min-width:180px;font:inherit;font-size:14px;padding:9px 10px;border:1.5px solid var(--ln);border-radius:8px;background:var(--sf);color:var(--fg)}
+.foot{display:flex;flex-wrap:wrap;gap:8px;padding-top:10px;align-items:center}
+.btn{font:inherit;font-weight:700;font-size:14px;padding:10px 16px;border-radius:8px;border:0;background:var(--nv);color:#fff;cursor:pointer}
+.btn.g{background:var(--soft);color:var(--fg)}
+.btn.no{background:var(--sf);color:var(--bad);border:1.5px solid var(--bad)}
+.btn.link{background:none;color:var(--nv);text-decoration:underline;padding:4px 0}
+.btn:disabled{opacity:.5}
+.msg{font-size:13px;color:var(--mu)}
+.msg.ok{color:var(--ok);font-weight:600}
+.msg.bad{color:var(--bad);font-weight:600}
+.st b{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.st b em{font-style:normal}
+.nal{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--mu);white-space:nowrap;cursor:pointer;padding:3px 8px;border:1.5px solid var(--ln);border-radius:999px;background:var(--sf)}
+.nal input{width:15px;height:15px;margin:0;accent-color:var(--bad)}
+.st.na b em{text-decoration:line-through;opacity:.5}
+.st.na .nal{border-color:var(--bad);color:var(--bad);background:#fdecec}
+.st.na input[type=range],.st.na .bk,.st.na .opt{display:none}
+.st input[type=range]{pointer-events:none}
+.opt{grid-column:1/-1;display:flex;gap:6px;margin-top:2px}
+.opt button{flex:1;font:inherit;font-size:13px;font-weight:700;padding:8px 0;border:1.5px solid var(--ln);border-radius:8px;background:var(--sf);color:var(--fg);cursor:pointer}
+.opt button.on{background:var(--c);border-color:var(--c);color:#fff}
+.st.na span{color:var(--mu);font-size:12px}
+</style></head><body>
+<header><h1>Avance del mes · Qorihuata</h1><p>1) Elige tu nombre. 2) Confirma tus empresas. 3) Registra tu avance con las barras.</p></header>
+<main>
+<div class="box" style="display:flex;flex-wrap:wrap;gap:14px 24px;align-items:flex-end"><div><p class="lbl">¿Quién eres?</p><div class="who" id="who"></div></div><div><p class="lbl">Mes que reportas</p><select id="mes"></select><p class="note" id="hoy" style="margin-top:6px"></p></div></div>
+<p class="note" id="hint">Toca tu nombre para empezar.</p>
+<div id="list"></div>
+</main>
+<script>
+var FORM="https://docs.google.com/forms/d/e/1FAIpQLSfbtvi94Aehywh2SK3_qTuwgvULFTQbDbGrmcueqXEfesNTGA/formResponse";
+var E_WHO="entry.444919183", E_EMP="entry.964281956", E_NOTA="entry.312012141";
+var STEPS=[
+["entry.1746248518","Cálculo de planillas","28–30 y 1–2","--s1"],
+["entry.1695383682","Estados de cuenta del mes anterior","1–3","--s2"],
+["entry.1647268038","Detracciones de compras y ventas","3–4","--s3"],
+["entry.1120043919","PDT 601 – PLAME","3–8","--s4"],
+["entry.1451663362","Registro de compras y ventas","5–9","--s5"],
+["entry.1736869074","PDT 621 – IGV Renta","9–13","--s6"],
+["entry.1978994010","Reporte tributario de deudas – informativo al cliente","14–15","--s7"],
+["entry.577253973","Conciliaciones bancarias y provisiones","16–27","--s8"]];
+var EMP={
+Brenda:["AGRO EXPORT PAIJAN S.A.C.","CUIDARTE SALUD Y BIENESTAR INTEGRAL S.A.C","EXCELSIOR FOOD E.I.R.L.","INMOBILIARIA YUPANPY SERVICIOS GENERALES S.A.C","LUXANG HOLDING S.A.C.","LZD SOLUCIONES CORPORATIVAS E.I.R.L.","ODONTOLOGIA INTEGRAL ESPECIALIZADA S.A.C","QORIHUATA CAPITAL PERU S.A.C.","REAL.T INMOBILIARIA S.A.C.","RODRIGUEZ CRIOLLO SAMUEL","THE ONE THING E.I.R.L.","UNA NUEVA NACION S.A.C"],
+Stefany:["2MTEXTIL S.A.C.","EXUS S.A.C","EXUS SERVICIOS GENERALES S.A.C","IZANGO 360 S.A.C.","IZANGO SELVA 360 SOCIEDAD ANONIMA CERRADA","KORIQINTI INMOBILIARIA S.A.C","LOPEZ & JORDAN SERVICIOS GENERALES S.A.C.","ROMIFER E.I.R.L"],
+Kathy:["ACME GARRE E.I.R.L","BILLIONS OF THESE S.A.C.","IMPORTACIONES PERÚ A TODA MÁQUINA S.A.C.S. - IPTM S.A.C.S.","JARDIN NINOS DE GEST.NO ESTAT STA CLARA","MEGA FRESH GREEN S.A.C","MYM TELECOMUNICACIONES SIXSEVEN S.A.C.","QORI WASI BNB S.A.C"],
+Jenny:["ACME GARRE E.I.R.L","BILLIONS OF THESE S.A.C.","IMPORTACIONES PERÚ A TODA MÁQUINA S.A.C.S. - IPTM S.A.C.S.","JARDIN NINOS DE GEST.NO ESTAT STA CLARA","MEGA FRESH GREEN S.A.C","MYM TELECOMUNICACIONES SIXSEVEN S.A.C.","QORI WASI BNB S.A.C"]};
+var OTRA="Otra (escribir en la nota)";
+var MN=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+var MESES_OPC=[-1].map(function(o){var d=new Date();d.setDate(1);d.setMonth(d.getMonth()+o);var m=d.getMonth(),y=d.getFullYear();return {v:y+"-"+(m<9?"0":"")+(m+1)+" · "+MN[m],t:MN[m].charAt(0).toUpperCase()+MN[m].slice(1)+" "+y,m:m}});
+var MES_SEL,MESANT;
+function setMes(i){MES_SEL=MESES_OPC[i].v;MESANT=MN[MESES_OPC[i].m];STEPS[1][1]="Estados de cuenta de "+MESANT;}
+setMes(0);
+var E_MES="entry.1144633502";
+var BANKS=["BBVA","BCP","BanBif","Interbank","Scotiabank","Banco de la Nación"];
+function banksHtml(sel){return '<div class="bk"><small>Marca los bancos cuyo estado de cuenta de '+MESANT+' ya tienes:</small>'+BANKS.map(function(b){var on=sel.indexOf(b)>=0;return '<label class="'+(on?'on':'')+'"><input type="checkbox" value="'+b+'"'+(on?' checked':'')+'>'+b+'</label>'}).join("")+'</div>'}
+var who=null, wiz=null;
+function $(s){return document.querySelector(s)}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function load(k){try{return JSON.parse(localStorage.getItem(k)||"null")}catch(e){return null}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+$("#hoy").textContent="Fecha de llenado: "+new Date().toLocaleDateString("es-PE",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+$("#mes").innerHTML=MESES_OPC.map(function(o,i){return '<option value="'+i+'">'+o.t+'</option>'}).join("");
+$("#mes").onchange=function(){setMes(Number(this.value));if(who)pick(who);};
+$("#who").innerHTML=Object.keys(EMP).map(function(n){return '<button type="button" aria-pressed="false" data-n="'+n+'">'+n+'</button>'}).join("");
+$("#who").onclick=function(e){var b=e.target.closest("button");if(b)pick(b.dataset.n)};
+
+function pick(n){
+who=n;save("who",n);avisoEECC(n);
+document.querySelectorAll("#who button").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.n===n)});
+var conf=load("conf:"+n);
+if(conf)showAvance(conf);else startWizard();}
+
+function startWizard(){var c=load("conf:"+who);var pre=c?c.si.slice():EMP[who].filter(function(e){return REMEMP[who+"|"+e]});wiz={si:pre,extra:c?c.extra.slice():[]};renderWizard();}
+function renderWizard(){
+var list=EMP[who].concat(wiz.extra.filter(function(e){return EMP[who].indexOf(e)<0}));
+var n=wiz.si.length;
+$("#hint").textContent="Paso 2 de 3: marca todas las empresas que llevas y luego toca Confirmar.";
+var rows=list.map(function(e){var on=wiz.si.indexOf(e)>=0;return '<label class="re'+(on?' on':'')+'"><input type="checkbox" data-emp="'+esc(e)+'"'+(on?' checked':'')+'><span>'+esc(e)+'</span><b>'+(on?'Sí la llevo':'')+'</b></label>'}).join("");
+$("#list").innerHTML='<div class="box" style="padding:0;overflow:hidden"><div class="rehead"><span class="lbl" style="margin:0">'+esc(who)+', tus empresas ('+list.length+')</span><button type="button" class="btn link" data-yn="all">Marcar todas</button></div>'+
+(rows||'<p class="note" style="padding:14px">No tienes empresas asignadas. Agrega las tuyas abajo.</p>')+
+'<div style="padding:14px;border-top:1px solid var(--ln)"><p class="lbl">¿Llevas otra empresa que no está en la lista?</p><div class="addrow"><input type="text" id="extra" placeholder="Nombre de la empresa"><button type="button" class="btn g" data-yn="add">Agregar</button></div>'+
+'<div class="foot" style="padding-top:14px"><button type="button" class="btn" data-yn="fin"'+(n?'':' disabled')+'>Confirmar ('+n+') y llenar mi informe</button></div></div></div>';}
+
+function showAvance(conf){
+var items=conf.si.map(function(e){return EMP[who].indexOf(e)>=0?{emp:e,label:who+" · "+e}:{emp:e,label:OTRA,extra:true}});
+$("#hint").textContent=items.length?("Paso 3 de 3: hola "+who+", registra tu avance. Abre cada empresa, mueve las barras y toca Guardar. Si un paso no corresponde a la empresa (sin planilla, sin banco, etc.), marca «No aplica» y no contará en el %."):("No confirmaste empresas. Toca Cambiar mis empresas para agregarlas.");
+$("#list").innerHTML='<div class="box" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span class="note">Llevas '+items.length+' empresa'+(items.length===1?'':'s')+'.</span><button type="button" class="btn link" data-yn="edit">Cambiar mis empresas</button></div>'+items.map(card).join("");}
+function card(c,i){
+var key="v:"+MES_SEL+":"+who+":"+c.emp;
+var st=load(key);var na=load("na:"+who+":"+c.emp);
+var rm=REM[MES_SEL+"|"+who+"|"+c.emp];if(rm&&(!st||!st.ts||rm.ts>st.ts)){st={p:rm.p.slice(),nota:rm.nota,t:rm.t,b:rm.b};na=rm.na.slice();}
+st=st||{p:STEPS.map(function(){return 0}),nota:"",t:""};na=na||STEPS.map(function(){return false});
+var avg=avgOf(st.p,na);
+var h='<details data-i="'+i+'" data-label="'+esc(c.label)+'" data-emp="'+esc(c.emp)+'" data-extra="'+(c.extra?1:0)+'"><summary><span class="nm">'+esc(c.emp)+'</span><span class="pc" id="pc'+i+'">'+avg+'%</span>';
+h+='<span class="bar"><i id="b'+i+'" style="width:'+avg+'%"></i></span><span class="meta" id="m'+i+'">'+(st.t?"Guardado "+esc(st.t):"Sin guardar aún")+'</span></summary><div class="steps">';
+STEPS.forEach(function(s,j){var v=st.p[j],n=!!na[j];
+h+='<div class="st'+(n?" na":(v>=100?" done":""))+'" style="--c:var('+s[3]+')"><b><em>'+(j+1)+'. '+s[1]+' <small>· días '+s[2]+'</small></em><label class="nal"><input type="checkbox" class="nachk"'+(n?' checked':'')+'>No aplica</label></b>';
+h+='<input type="range" min="0" max="100" step="25" value="'+v+'" style="--p:'+v+'%" aria-label="'+esc(s[1])+'"'+(n?' disabled':'')+'><span>'+(n?'N/A':v+'%')+'</span><div class="opt">'+[0,25,50,75,100].map(function(o){return '<button type="button" data-v="'+o+'"'+(o==v?' class="on"':'')+'>'+o+'%</button>'}).join('')+'</div>'+(j===1?banksHtml(st.b||[]):'')+'</div>';});
+h+='<div class="foot"><input type="text" class="nota" value="'+esc(st.nota)+'" placeholder="Nota: qué falta (opcional)">';
+h+='<button type="button" class="btn g all">Todo al 100%</button><button type="button" class="btn sv">Guardar</button><span class="msg"></span></div></div></details>';
+return h;}
+function vals(d){return Array.prototype.map.call(d.querySelectorAll("input[type=range]"),function(r){return Number(r.value)})}
+function nas(d){return Array.prototype.map.call(d.querySelectorAll(".nachk"),function(x){return x.checked})}
+function avgOf(p,na){var s=0,k=0;p.forEach(function(v,j){if(!na[j]){s+=v;k++}});return k?Math.round(s/k):100}
+function refresh(d){var i=d.dataset.i,a=avgOf(vals(d),nas(d));$("#pc"+i).textContent=a+"%";$("#b"+i).style.width=a+"%"}
+
+$("#list").addEventListener("input",function(e){var r=e.target;if(r.type!=="range")return;r.style.setProperty("--p",r.value+"%");r.nextElementSibling.textContent=r.value+"%";r.parentElement.classList.toggle("done",r.value>=100);r.parentElement.querySelectorAll(".opt button").forEach(function(x){x.classList.toggle("on",x.dataset.v==r.value)});var d=r.closest("details");refresh(d);d.querySelector(".msg").textContent="Sin guardar"});
+function soloCirculo(e){var r=e.target;if(r.type!=="range")return;var b=r.getBoundingClientRect(),x=e.touches?e.touches[0].clientX:e.clientX,cx=b.left+13+(b.width-26)*Number(r.value)/100;if(Math.abs(x-cx)>26)e.preventDefault()}
+
+document.addEventListener("pointerup",function(){var a=document.activeElement;if(a&&a.type==="range")a.blur()});
+$("#list").addEventListener("keydown",function(e){if(e.key==="Enter"&&e.target.id==="extra"){e.preventDefault();addExtra()}});
+function addExtra(){var v=$("#extra").value.trim().replace(/\s+/g," ");if(!v)return;if(EMP[who].indexOf(v)<0&&wiz.extra.indexOf(v)<0)wiz.extra.push(v);if(wiz.si.indexOf(v)<0)wiz.si.push(v);renderWizard();}
+$("#list").addEventListener("change",function(e){var c=e.target;
+if(c.classList.contains("nachk")){var row=c.closest(".st"),r=row.querySelector("input[type=range]"),dd=c.closest("details");row.classList.toggle("na",c.checked);r.disabled=c.checked;row.classList.toggle("done",!c.checked&&r.value>=100);r.nextElementSibling.textContent=c.checked?"N/A":r.value+"%";save("na:"+who+":"+dd.dataset.emp,nas(dd));refresh(dd);dd.querySelector(".msg").textContent="Sin guardar";return;}
+if(c.closest(".bk")){c.parentElement.classList.toggle("on",c.checked);c.closest("details").querySelector(".msg").textContent="Sin guardar";return;}if(c.type!=="checkbox"||!c.dataset.emp)return;var v=c.dataset.emp,k=wiz.si.indexOf(v);if(c.checked&&k<0)wiz.si.push(v);if(!c.checked&&k>=0)wiz.si.splice(k,1);var row=c.closest(".re");row.classList.toggle("on",c.checked);row.querySelector("b").textContent=c.checked?"Sí la llevo":"";var f=document.querySelector('[data-yn="fin"]');f.disabled=!wiz.si.length;f.textContent="Confirmar ("+wiz.si.length+") y llenar mi informe";});
+$("#list").addEventListener("click",function(e){
+var ob=e.target.closest(".opt button");if(ob){var rr=ob.closest(".st").querySelector("input[type=range]");rr.value=ob.dataset.v;rr.dispatchEvent(new Event("input",{bubbles:true}));return;}
+var yn=e.target.closest("[data-yn]");
+if(yn){var a=yn.dataset.yn;
+if(a==="all"){wiz.si=EMP[who].concat(wiz.extra);renderWizard();}
+else if(a==="add")addExtra();
+else if(a==="fin"){var order=EMP[who].concat(wiz.extra);var conf={si:order.filter(function(x){return wiz.si.indexOf(x)>=0}),extra:wiz.extra};save("conf:"+who,conf);showAvance(conf);}
+else if(a==="edit")startWizard();
+return;}
+var d=e.target.closest("details");if(!d)return;
+if(e.target.classList.contains("all")){d.querySelectorAll("input[type=range]:not(:disabled)").forEach(function(r){r.value=100;r.dispatchEvent(new Event("input",{bubbles:true}))});return}
+if(!e.target.classList.contains("sv"))return;
+var b=e.target,m=d.querySelector(".msg"),p=vals(d),na=nas(d),nota=d.querySelector(".nota").value.trim(),label=d.dataset.label,emp=d.dataset.emp;
+var bks=Array.prototype.filter.call(d.querySelectorAll(".bk input"),function(x){return x.checked}).map(function(x){return x.value});
+var notaEnv="Avance: "+avgOf(p,na)+"% (sin contar pasos que no aplican). "+(who==="Brenda"&&load(AVK)?"Aviso EECC octubre: "+load(AVK)+". ":"")+(d.dataset.extra==="1"?"Empresa: "+emp+". ":"")+(bks.length?"EECC "+MESANT+" recibidos: "+bks.join(", ")+". ":"")+nota;notaEnv=notaEnv.trim();
+var f=new URLSearchParams();f.append(E_WHO,who);f.append(E_EMP,label);STEPS.forEach(function(s,j){f.append(s[0],na[j]?"No aplica":p[j]+"%")});if(notaEnv)f.append(E_NOTA,notaEnv);f.append(E_MES,MES_SEL);
+b.disabled=true;m.className="msg";m.textContent="Guardando…";
+fetch(FORM,{method:"POST",mode:"no-cors",body:f}).then(function(){
+var t=new Date().toLocaleString("es-PE",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+save("v:"+MES_SEL+":"+who+":"+emp,{p:p,nota:nota,t:t,b:bks,ts:Date.now()});m.className="msg ok";m.textContent="Guardado ✓";$("#m"+d.dataset.i).textContent="Guardado "+t;b.disabled=false;
+}).catch(function(){m.className="msg bad";m.textContent="No se pudo guardar. Revisa tu internet e intenta otra vez.";b.disabled=false;});
+});
+var REM={},REMEMP={};
+var PUB="https://docs.google.com/spreadsheets/d/e/2PACX-1vQC8hsPB-fp1TEA-fMBVW_-IxzHDOn2z_u8XRo-EqSFqi-_LLp0O19W_nkGtjrGHdy9QyfnXkvvBL7R/pub?gid=296229147&single=true&output=csv";
+function csv(s){var out=[],row=[],f="",q=false;for(var i=0;i<s.length;i++){var c=s[i];if(q){if(c=='"'){if(s[i+1]=='"'){f+='"';i++}else q=false}else f+=c}else if(c=='"')q=true;else if(c==","){row.push(f);f=""}else if(c=="\n"){row.push(f);out.push(row);row=[];f=""}else if(c!="\r")f+=c}if(f||row.length){row.push(f);out.push(row)}return out}
+function cargarRemoto(){fetch(PUB+"&t="+Date.now()).then(function(r){return r.text()}).then(function(txt){
+csv(txt).slice(1).forEach(function(r){if(r.length<12)return;var w=r[1],full=r[2],pre=w+" · ";if(full.indexOf(pre)!==0)return;var emp=full.slice(pre.length);
+var m=/(\d+)\/(\d+)\/(\d+)\s+(\d+):(\d+):?(\d*)/.exec(r[0]);if(!m)return;var dt=new Date(+m[3],+m[2]-1,+m[1],+m[4],+m[5],+(m[6]||0));
+var na=[],p=[];for(var j=0;j<STEPS.length;j++){var v=(r[3+j]||"").trim();var x=(v==="No aplica"||v==="");na.push(x);p.push(x?0:(parseInt(v,10)||0))}
+var nota=(r[12]||"").replace(/^Avance: \d+% \(sin contar pasos que no aplican\)\.\s*/,""),b=[];var mb=/^EECC \S+ recibidos: ([^.]*)\.\s*/.exec(nota);if(mb){b=mb[1].split(", ");nota=nota.slice(mb[0].length)}
+if(!p.some(function(x){return x>0})&&!na.some(function(x){return x})&&!nota.trim())return;
+((w==="Kathy"||w==="Jenny")?["Kathy","Jenny"]:[w]).forEach(function(w){var mes=r[11];if(mes.indexOf("2026-11")===0&&dt<new Date(2026,10,14))mes="2026-10 · octubre";var k=mes+"|"+w+"|"+emp,old=REM[k];if(!old||dt.getTime()>=old.ts){REM[k]={p:p,na:na,nota:nota.trim(),b:b,ts:dt.getTime(),t:dt.toLocaleString("es-PE",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}}REMEMP[w+"|"+emp]=1;});});
+if(who){var c=load("conf:"+who);if(c)showAvance(c);else startWizard();}}).catch(function(){});}
+var AVK="avisoEECC:2026-10:Brenda";
+function avisoEECC(n){
+if(n!=="Brenda"||load(AVK)||document.getElementById("avx"))return;
+var o=document.createElement("div");o.id="avx";
+o.style.cssText="position:fixed;inset:0;background:rgba(27,27,47,.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px";
+o.innerHTML='<div style="background:#fff;max-width:440px;width:100%;border-radius:12px;border-top:6px solid #b8862a;padding:18px 18px 14px;font:15px/1.45 Arial,sans-serif;color:#1b1b2f;box-shadow:0 10px 30px rgba(0,0,0,.25)">'
++'<div style="font-weight:800;font-size:17px;color:#4f35c8;margin-bottom:8px">&#9888;&#65039; Brenda, una consulta antes de empezar</div>'
++'<p style="margin:0 0 8px">Revisamos el Drive y <b>no encontramos los estados de cuenta de OCTUBRE 2026</b> de tus empresas (lo último que hay es de setiembre).</p>'
++'<p style="margin:0 0 14px;font-weight:700">¿Ya tienes los estados de cuenta de octubre?</p>'
++'<div id="avb" style="display:flex;gap:8px;flex-wrap:wrap">'
++'<button data-r="Sí, ya los tengo" style="flex:1;min-width:150px;padding:10px;border:0;border-radius:8px;background:#2e7d32;color:#fff;font-weight:700;cursor:pointer">Sí, ya los tengo</button>'
++'<button data-r="Todavía no" style="flex:1;min-width:150px;padding:10px;border:0;border-radius:8px;background:#c62828;color:#fff;font-weight:700;cursor:pointer">Todavía no</button>'
++'<button data-r="Solo algunos" style="flex:1 1 100%;padding:10px;border:1px solid #b8862a;border-radius:8px;background:#fff;color:#1b1b2f;font-weight:700;cursor:pointer">Solo de algunas empresas</button>'
++'</div><div id="avm" style="display:none;margin-top:12px"></div></div>';
+document.body.appendChild(o);
+o.querySelector("#avb").addEventListener("click",function(e){var r=e.target.getAttribute("data-r");if(!r)return;save(AVK,r);
+var msg=r==="Sí, ya los tengo"?"Perfecto. En el paso <b>2. Estados de cuenta</b> de cada empresa marca el % y los bancos que tienes, y <b>súbelos al Drive</b> en la carpeta de bancos de cada empresa."
+:r==="Todavía no"?"Entendido. Deja el paso <b>2. Estados de cuenta</b> en 0% y en la <b>nota</b> escribe a qué banco o cliente se los pediste."
+:"Entendido. Marca el paso <b>2. Estados de cuenta</b> solo en las empresas que ya tienes, y en las demás anota en la <b>nota</b> qué falta.";
+this.style.display="none";var m=document.getElementById("avm");m.style.display="block";
+m.innerHTML='<p style="margin:0 0 12px">'+msg+'</p><button id="avok" style="width:100%;padding:10px;border:0;border-radius:8px;background:#4f35c8;color:#fff;font-weight:700;cursor:pointer">Entendido, continuar</button>';
+document.getElementById("avok").onclick=function(){o.remove()};});
+}
+cargarRemoto();
+var last=load("who");if(last&&EMP[last])pick(last);
+</script></body></html>
