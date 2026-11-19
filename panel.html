@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Panel de avance y cobranza</title>
+<style>
+:root{--nv:#4f35c8;--bg:#f2f0fb;--ln:#dcd7f2;--mu:#5d5a78;--gold:#b8862a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#1b1b2f;font:15px/1.45 "Segoe UI",Roboto,system-ui,sans-serif}
+header{background:var(--nv);color:#fff;padding:16px;border-bottom:10px solid transparent;border-image:repeating-linear-gradient(90deg,#b8862a 0 14px,#1b1b2f 14px 28px,#c4baf0 28px 42px,#1b1b2f 42px 56px) 10}
+h1{margin:0;font-size:20px;font-weight:800}header p{margin:2px 0 0;opacity:.85;font-size:13px}
+main{max-width:1200px;margin:0 auto;padding:14px 12px 40px}
+.box{background:#fff;border:1px solid var(--ln);border-radius:10px;padding:16px}
+.lbl{font:700 11px ui-monospace,Consolas,monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--mu);margin:0 0 10px}
+.who{display:flex;flex-wrap:wrap;gap:10px}.who button{font:inherit;font-weight:700;padding:12px 22px;border-radius:999px;border:1.5px solid var(--ln);background:#fff;cursor:pointer;font-size:16px}
+.who button.on{background:var(--nv);border-color:var(--nv);color:#fff}
+#pinbox{display:none;margin-top:14px;gap:8px;flex-wrap:wrap;align-items:center}
+#pin{font:inherit;font-size:20px;letter-spacing:.3em;width:170px;padding:9px 12px;border:1.5px solid var(--ln);border-radius:8px}
+.btn{font:inherit;font-weight:700;padding:10px 16px;border-radius:8px;border:0;background:var(--nv);color:#fff;cursor:pointer}
+.btn.g{background:#e9e5fa;color:#1b1b2f}.msg{font-size:13px;color:var(--mu)}.msg.bad{color:#c62828;font-weight:700}
+.bar{display:none;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0}
+iframe{width:100%;border:1px solid var(--ln);border-radius:10px;background:#fff;min-height:80vh;display:none}
+</style></head><body>
+<header><h1>Panel de avance y cobranza · Qorihuata</h1><p>Solo para Jabes, Miguel y Angie. Lo actualiza Jarvis cada hora.</p></header>
+<main>
+<div class="box"><p class="lbl">¿Quién eres?</p><div class="who" id="who"></div>
+<div id="pinbox"><input id="pin" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="PIN"><button class="btn" id="entrar">Entrar</button><span class="msg" id="msg">La primera vez escribe tu PIN de 6 dígitos. Luego se recuerda en este equipo.</span></div></div>
+<div class="bar" id="bar"><span class="msg" id="info"></span><span style="display:flex;gap:8px"><button class="btn g" id="act">Actualizar</button><button class="btn g" id="salir">Salir</button></span></div>
+<iframe id="vista" title="Panel"></iframe>
+</main>
+<script>
+var URL_S="https://script.google.com/macros/s/AKfycbxCH7w5YuELqBnVZC_dGvZ1Pvy2nc7MVrpcKaZyWJTLxqv4Thsg5112-zuwdAv0j3qA/exec";
+var GENTE=["Jabes","Miguel","Angie"],quien=null;
+function $(s){return document.querySelector(s)}
+function ld(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function sv(k,v){try{v===null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
+$("#who").innerHTML=GENTE.map(function(n){return '<button type="button" data-n="'+n+'">'+n+'</button>'}).join("");
+$("#who").onclick=function(e){var b=e.target.closest("button");if(!b)return;quien=b.dataset.n;
+document.querySelectorAll("#who button").forEach(function(x){x.classList.toggle("on",x===b)});
+var p=ld("pin:"+quien);if(p){cargar(p)}else{$("#pinbox").style.display="flex";$("#pin").value="";$("#pin").focus();$("#msg").className="msg";$("#msg").textContent="La primera vez escribe tu PIN de 6 dígitos. Luego se recuerda en este equipo."}};
+$("#entrar").onclick=function(){var p=$("#pin").value.trim();if(!/^\d{6}$/.test(p)){$("#msg").className="msg bad";$("#msg").textContent="El PIN tiene 6 números.";return}cargar(p)};
+$("#pin").onkeydown=function(e){if(e.key==="Enter")$("#entrar").click()};
+$("#act").onclick=function(){var p=ld("pin:"+quien);if(p)cargar(p)};
+$("#salir").onclick=function(){sv("pin:"+quien,null);location.reload()};
+function cargar(p){$("#msg").className="msg";$("#msg").textContent="Cargando…";$("#info").textContent="Cargando…";
+fetch(URL_S,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({accion:"panel",quien:quien,pin:p})})
+.then(function(r){return r.json()}).then(function(j){
+if(!j.ok){sv("pin:"+quien,null);$("#pinbox").style.display="flex";$("#bar").style.display="none";$("#vista").style.display="none";
+$("#msg").className="msg bad";$("#msg").textContent=j.error==="pin"?"PIN incorrecto. Inténtalo otra vez.":j.error;return}
+sv("pin:"+quien,p);sv("ultimo",quien);$("#pinbox").style.display="none";$("#bar").style.display="flex";
+$("#info").textContent="Hola "+quien+" · panel actualizado por Jarvis el "+j.fecha;
+var f=$("#vista");f.style.display="block";f.srcdoc=j.html.replace(/<meta http-equiv="refresh"[^>]*>/,"");
+f.onload=function(){try{f.style.height=(f.contentDocument.body.scrollHeight+30)+"px"}catch(e){}};
+}).catch(function(){$("#msg").className="msg bad";$("#msg").textContent="No se pudo conectar. Revisa tu internet.";$("#info").textContent=""});}
+var u=ld("ultimo");if(u&&ld("pin:"+u)){var b=document.querySelector('#who button[data-n="'+u+'"]');if(b)b.click()}
+</script>
+</body></html>
