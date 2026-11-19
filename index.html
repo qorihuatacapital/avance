@@ -144,17 +144,17 @@ th.venc small{color:#c62828;font-weight:700}.hoy{display:flex;flex-wrap:wrap;gap
 </main>
 <script>
 var FORM="https://docs.google.com/forms/d/e/1FAIpQLSfbtvi94Aehywh2SK3_qTuwgvULFTQbDbGrmcueqXEfesNTGA/formResponse";
-// ---- Cobranza de honorarios: formulario PRIVADO aparte (no se publica), no afecta el % de avance
+// ---- Cobranza de facturas del servicio contable: formulario PRIVADO aparte (no se publica), no afecta el % de avance
 var FORM_COB="https://docs.google.com/forms/d/e/1FAIpQLSfhm7-JJsPopd47j4C_m0N4fqn1dL9cs2XcHT-gMdbARSDNkQ/formResponse";
 var C_WHO="entry.1911344112",C_EMP="entry.985908557",C_PER="entry.336774317",C_HON="entry.1523527826",C_EST="entry.1097130401",
 C_MON="entry.2085742585",C_FEC="entry.1370738613",C_MED="entry.880099782",C_CPE="entry.111373337",C_NOT="entry.1020459106";
-var HONORARIOS={}; // honorario fijo por empresa (lo carga Jabes); si no está, la contadora lo escribe y se recuerda
+var HONORARIOS={}; // monto fijo de la factura por empresa (lo carga Jabes); si no está, la contadora lo escribe y se recuerda
 var MEDIOS=["Transferencia","Yape / Plin","Efectivo","Depósito"],ESTADOS=["Pendiente","Parcial","Cobrado"];
 function cobKey(emp){return "cob:"+MES_SEL+":"+who+":"+emp}
 function cobHtml(c,i){var k=load(cobKey(c.emp))||{};var hon=HONORARIOS[c.emp]||k.hon||load("hon:"+who+":"+c.emp)||"";
 var est=k.est||"",med=k.med||"";
 return '<div class="cob fila" data-emp="'+esc(c.emp)+'" data-i="'+i+'" data-cst="'+esc(k.cst||"")+'"><h4><span class="dot '+est+'" id="cd'+i+'"></span>'+esc(c.emp)+'</h4>'
-+'<div class="row"><label>Honorario S/</label><input type="number" min="0" step="0.01" class="mon hon" value="'+esc(hon)+'"'+(HONORARIOS[c.emp]?' readonly title="Monto fijo cargado por Jabes"':'')+' placeholder="0.00">'
++'<div class="row"><label>Monto factura S/</label><input type="number" min="0" step="0.01" class="mon hon" value="'+esc(hon)+'"'+(HONORARIOS[c.emp]?' readonly title="Monto fijo cargado por Jabes"':'')+' placeholder="0.00">'
 +'<label>Estado</label><div class="cbo est">'+ESTADOS.map(function(x){return '<button type="button" data-x="'+x+'"'+(x===est?' class="on"':'')+'>'+(x==="Parcial"?"Cobrado parcial":x)+'</button>'}).join('')+'</div></div>'
 +'<div class="row cpart"'+(est==="Parcial"?'':' style="display:none"')+'><label>Monto cobrado S/</label><input type="number" min="0" step="0.01" class="mon cmon" value="'+esc(k.mon||"")+'" placeholder="0.00"></div>'
 +'<div class="row cpag"'+(est&&est!=="Pendiente"?'':' style="display:none"')+'><label>Fecha de cobro</label><input type="date" class="cfec" value="'+esc(k.fec||"")+'">'
@@ -162,7 +162,7 @@ return '<div class="cob fila" data-emp="'+esc(c.emp)+'" data-i="'+i+'" data-cst=
 +'<div class="row"><input type="text" class="cnota" value="'+esc(k.nota||"")+'" placeholder="Nota (opcional): ej. paga a fin de mes"><span class="cmsg">'+(k.t?"Registrado "+esc(k.t):"Sin registrar")+'</span></div></div>';}
 function cobResumen(){var n={Cobrado:0,Parcial:0,Pendiente:0,no:0},cob=0,hon=0;ITEMS.forEach(function(c){var k=load(cobKey(c.emp));if(k&&k.est){n[k.est]++;cob+=Number(k.mon||0);hon+=Number(k.hon||0)}else n.no++});
 return '<b>Cobrado:</b> '+n.Cobrado+' · <b>Parcial:</b> '+n.Parcial+' · <b>Pendiente:</b> '+n.Pendiente+' · <b>Sin registrar:</b> '+n.no+(hon?' · <b>S/ '+cob.toFixed(2)+'</b> de S/ '+hon.toFixed(2):'')}
-function cobPanel(items){return '<div class="box"><p style="margin:0 0 6px;font-weight:700">💰 Cobranza de honorarios de '+esc(MESANT)+'</p><p class="sub" style="margin:0 0 8px;font-size:12.5px;color:var(--mu)">Aparte del avance: no cambia tu %. Marca si cada cliente ya pagó los servicios contables del mes.</p><div class="cobres" id="cobres">'+cobResumen()+'</div></div>'
+function cobPanel(items){return '<div class="box"><p style="margin:0 0 6px;font-weight:700">💰 Cobranza de facturas del servicio contable de '+esc(MESANT)+'</p><p class="sub" style="margin:0 0 8px;font-size:12.5px;color:var(--mu)">Aparte del avance: no cambia tu %. Marca si cada cliente ya pagó los servicios contables del mes.</p><div class="cobres" id="cobres">'+cobResumen()+'</div></div>'
 +(PL?cobTabla(items):items.map(function(c,i){return cobHtml(c,i)}).join(""))
 +'<div class="cobfoot"><button type="button" class="btn" id="cobsave">Guardar cobranza</button><span class="cmsg" id="cobmsg"></span></div>'}
 function cobBadge(emp){var k=load(cobKey(emp));return k&&k.est?'<span class="cbadge '+k.est+'">'+(k.est==="Cobrado"?"Cobrado":k.est==="Parcial"?"Cobro parcial":"Cobro pendiente")+'</span>':''}
@@ -317,7 +317,7 @@ var envios=[],errores=0;
 filas.forEach(function(bx){var m=bx.querySelector(".cmsg"),emp=bx.dataset.emp,on=function(c){var x=bx.querySelector(".cbo."+c+" button.on");return x?x.dataset.x:""};
 var est=on("est"),hon=bx.querySelector(".hon").value.trim(),mon=bx.querySelector(".cmon").value.trim(),fec=bx.querySelector(".cfec").value,
 med=bx.querySelector("select.cmed")?bx.querySelector("select.cmed").value:on("med"),cpe=bx.querySelector(".ccpe").value.trim(),nota=bx.querySelector(".cnota").value.trim();
-var err=!est?"Elige el estado.":!hon?"Escribe el honorario.":(est==="Parcial"&&!mon)?"Escribe cuánto se cobró.":"";
+var err=!est?"Elige el estado.":!hon?"Escribe el monto de la factura.":(est==="Parcial"&&!mon)?"Escribe cuánto se cobró.":"";
 if(err){m.className="cmsg bad";m.textContent=err;errores++;return}
 if(est==="Cobrado")mon=hon;if(est==="Pendiente"){mon="0";fec="";med="";cpe=""}
 envios.push({bx:bx,emp:emp,d:{hon:hon,est:est,mon:mon,fec:fec,med:med,cpe:cpe,nota:nota,cst:est==="Pendiente"?"":(bx.dataset.cst||"")}});});
@@ -376,7 +376,7 @@ return '<tr class="cob" data-emp="'+esc(c.emp)+'" data-i="'+i+'" data-cst="'+esc
 +'<td><span class="cpag"'+(pg?'':' style="display:none"')+'><input type="text" class="ccpe" value="'+esc(k.cpe||"")+'" placeholder="Opcional"></span></td>'
 +'<td><span class="cpag"'+(pg?'':' style="display:none"')+'>'+constHtml(k)+'</span></td>'
 +'<td><input type="text" class="cnota" value="'+esc(k.nota||"")+'" placeholder="Ej. paga a fin de mes"><span class="cmsg">'+(k.t?"Registrado "+esc(k.t):"Sin registrar")+'</span></td></tr>'}
-function cobTabla(items){return '<div class="tw"><table class="pl"><thead><tr><th style="text-align:left;padding-left:10px;width:20%">Empresa</th><th style="width:9%">Honorario S/</th><th style="width:22%">Estado</th><th style="width:9%">Cobrado S/<small>si es parcial</small></th><th style="width:11%">Fecha de cobro</th><th style="width:10%">Medio</th><th style="width:9%">N° factura</th><th style="width:11%">Constancia<small>de pago</small></th><th>Nota</th></tr></thead><tbody>'
+function cobTabla(items){return '<div class="tw"><table class="pl"><thead><tr><th style="text-align:left;padding-left:10px;width:20%">Empresa</th><th style="width:9%">Monto factura S/</th><th style="width:22%">Estado</th><th style="width:9%">Cobrado S/<small>si es parcial</small></th><th style="width:11%">Fecha de cobro</th><th style="width:10%">Medio</th><th style="width:9%">N° factura</th><th style="width:11%">Constancia<small>de pago</small></th><th>Nota</th></tr></thead><tbody>'
 +items.map(cobFila).join("")+'</tbody></table></div>'}
 // ---- constancia de pago de la factura: se sube a Drive del dueño via Apps Script; el enlace va a la nota de cobranza
 var UP_URL="https://script.google.com/macros/s/AKfycbxCH7w5YuELqBnVZC_dGvZ1Pvy2nc7MVrpcKaZyWJTLxqv4Thsg5112-zuwdAv0j3qA/exec",UP_K="qc-cob-2026";
