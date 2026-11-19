@@ -131,6 +131,10 @@ tr.cob td .cmsg{display:block;font-size:11px;color:var(--mu);white-space:nowrap}
 
 .cconst{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}.cup{padding:6px 10px;border:1px dashed #b8862a;border-radius:8px;background:#fffaf0;font:inherit;font-size:12.5px;cursor:pointer;color:#7a5a12}
 .cver{font-size:12.5px;color:var(--ok);font-weight:700}.cup:disabled{opacity:.6;cursor:wait}
+
+.cel.atr{box-shadow:0 0 0 2px #c62828;position:relative}.cel.atr:after{content:"!";position:absolute;top:-6px;right:-4px;background:#c62828;color:#fff;border-radius:50%;width:14px;height:14px;font-size:10px;line-height:14px}
+th.venc small{color:#c62828;font-weight:700}.hoy{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;background:#fff;border:1px solid var(--ln);border-left:5px solid #b8862a;border-radius:8px;padding:9px 12px;font-size:13.5px}
+.hoy b{color:#7a5a12}.hoy .malo{color:#c62828;font-weight:700}.st.atr{box-shadow:inset 4px 0 0 #c62828}.st.atr em:after{content:" · atrasado";color:#c62828;font-style:normal;font-weight:700;font-size:12px}
 </style></head><body>
 <header><h1>Avance del mes · Qorihuata</h1><p>1) Elige tu nombre. 2) Confirma tus empresas. 3) Registra tu avance con las barras.</p></header>
 <main>
@@ -154,7 +158,7 @@ return '<div class="cob fila" data-emp="'+esc(c.emp)+'" data-i="'+i+'" data-cst=
 +'<label>Estado</label><div class="cbo est">'+ESTADOS.map(function(x){return '<button type="button" data-x="'+x+'"'+(x===est?' class="on"':'')+'>'+(x==="Parcial"?"Cobrado parcial":x)+'</button>'}).join('')+'</div></div>'
 +'<div class="row cpart"'+(est==="Parcial"?'':' style="display:none"')+'><label>Monto cobrado S/</label><input type="number" min="0" step="0.01" class="mon cmon" value="'+esc(k.mon||"")+'" placeholder="0.00"></div>'
 +'<div class="row cpag"'+(est&&est!=="Pendiente"?'':' style="display:none"')+'><label>Fecha de cobro</label><input type="date" class="cfec" value="'+esc(k.fec||"")+'">'
-+'<label>Medio</label><div class="cbo med">'+MEDIOS.map(function(x){return '<button type="button" data-x="'+x+'"'+(x===med?' class="on"':'')+'>'+x+'</button>'}).join('')+'</div><input type="text" class="ccpe" value="'+esc(k.cpe||"")+'" placeholder="N° RH / FT (opcional)" style="width:180px">'+constHtml(k)+'</div>'
++'<label>Medio</label><div class="cbo med">'+MEDIOS.map(function(x){return '<button type="button" data-x="'+x+'"'+(x===med?' class="on"':'')+'>'+x+'</button>'}).join('')+'</div><input type="text" class="ccpe" value="'+esc(k.cpe||"")+'" placeholder="N° factura (opcional)" style="width:180px">'+constHtml(k)+'</div>'
 +'<div class="row"><input type="text" class="cnota" value="'+esc(k.nota||"")+'" placeholder="Nota (opcional): ej. paga a fin de mes"><span class="cmsg">'+(k.t?"Registrado "+esc(k.t):"Sin registrar")+'</span></div></div>';}
 function cobResumen(){var n={Cobrado:0,Parcial:0,Pendiente:0,no:0},cob=0,hon=0;ITEMS.forEach(function(c){var k=load(cobKey(c.emp));if(k&&k.est){n[k.est]++;cob+=Number(k.mon||0);hon+=Number(k.hon||0)}else n.no++});
 return '<b>Cobrado:</b> '+n.Cobrado+' · <b>Parcial:</b> '+n.Parcial+' · <b>Pendiente:</b> '+n.Pendiente+' · <b>Sin registrar:</b> '+n.no+(hon?' · <b>S/ '+cob.toFixed(2)+'</b> de S/ '+hon.toFixed(2):'')}
@@ -249,7 +253,7 @@ var avg=avgOf(st.p,na);
 var h='<details data-i="'+i+'" data-label="'+esc(c.label)+'" data-emp="'+esc(c.emp)+'" data-extra="'+(c.extra?1:0)+'"><summary><span class="nm">'+esc(c.emp)+'</span><span class="pc" id="pc'+i+'">'+avg+'%</span>';
 h+='<span class="bar"><i id="b'+i+'" style="width:'+avg+'%"></i></span><span class="meta" id="m'+i+'">'+(st.t?"Registrado "+esc(st.t):"Sin guardar aún")+'</span></summary><div class="steps">';
 STEPS.forEach(function(s,j){var v=st.p[j],n=!!na[j];
-h+='<div class="st'+(n?" na":(v>=100?" done":""))+'" style="--c:var('+s[3]+')"><b><em>'+(j+1)+'. '+s[1]+' <small>· días '+s[2]+'</small></em><label class="nal"><input type="checkbox" class="nachk"'+(n?' checked':'')+'>No aplica</label></b>';
+h+='<div class="st'+(n?" na":(v>=100?" done":""))+(atrasado(j,v,n)?" atr":"")+'" style="--c:var('+s[3]+')"><b><em>'+(j+1)+'. '+s[1]+' <small>· días '+s[2]+'</small></em><label class="nal"><input type="checkbox" class="nachk"'+(n?' checked':'')+'>No aplica</label></b>';
 h+='<input type="range" min="0" max="100" step="25" value="'+v+'" style="--p:'+v+'%" aria-label="'+esc(s[1])+'"'+(n?' disabled':'')+'><span>'+(n?'N/A':v+'%')+'</span><div class="opt">'+[0,25,50,75,100].map(function(o){return '<button type="button" data-v="'+o+'"'+(o==v?' class="on"':'')+'>'+o+'%</button>'}).join('')+'</div>'+(j===1?banksHtml(st.b||[]):'')+'</div>';});
 h+='<div class="foot"><input type="text" class="nota" value="'+esc(st.nota)+'" placeholder="Nota: qué falta (opcional)">';
 h+='<button type="button" class="btn g all">Todo al 100%</button><button type="button" class="btn sv">Guardar y siguiente</button><span class="msg"></span></div></div></details>';
@@ -322,7 +326,7 @@ b.disabled=true;gm.className="cmsg";gm.textContent="Guardando "+envios.length+"�
 (function sig(k){if(k>=envios.length){b.disabled=false;$("#cobres").innerHTML=cobResumen();
 gm.className="cmsg "+(fallas||errores?"bad":"ok");gm.textContent=ok+" guardada"+(ok===1?"":"s")+" ✓"+(fallas?" · "+fallas+" sin internet, intenta otra vez":"")+(errores?" · "+errores+" por completar":"");return}
 var x=envios[k],d=x.d,f=new URLSearchParams();f.append(C_WHO,who);f.append(C_EMP,x.emp);f.append(C_PER,MES_SEL);f.append(C_HON,d.hon);f.append(C_EST,d.est);
-f.append(C_MON,d.mon);if(d.fec)f.append(C_FEC,d.fec);if(d.med)f.append(C_MED,d.med);if(d.cpe)f.append(C_CPE,d.cpe);var nt=(d.cst?"Constancia RH/FT: "+d.cst+(d.nota?" · ":""):"")+d.nota;if(nt)f.append(C_NOT,nt);
+f.append(C_MON,d.mon);if(d.fec)f.append(C_FEC,d.fec);if(d.med)f.append(C_MED,d.med);if(d.cpe)f.append(C_CPE,d.cpe);var nt=(d.cst?"Constancia de pago: "+d.cst+(d.nota?" · ":""):"")+d.nota;if(nt)f.append(C_NOT,nt);
 fetch(FORM_COB,{method:"POST",mode:"no-cors",body:f}).then(function(){var t=fh(new Date());
 d.t=t;d.ts=Date.now();save(cobKey(x.emp),d);save("hon:"+who+":"+x.emp,d.hon);x.bx.classList.remove("sucio");var m=x.bx.querySelector(".cmsg");m.className="cmsg ok";m.textContent="Registrado "+t+" ✓";
 var i=x.bx.dataset.i;["dt"+i,"cd"+i].forEach(function(id){var el=document.getElementById(id);if(el)el.className="dot "+d.est});ok++;sig(k+1);
@@ -335,16 +339,16 @@ function estado(c){var st=load("v:"+MES_SEL+":"+who+":"+c.emp),na=load("na:"+who
 var rm=REM[MES_SEL+"|"+who+"|"+c.emp];if(rm&&(!st||!st.ts||rm.ts>st.ts)){st={p:rm.p.slice(),nota:rm.nota,t:rm.t,b:rm.b};na=rm.na.slice();}
 st=st||{p:STEPS.map(function(){return 0}),nota:"",t:""};na=na||STEPS.map(function(){return false});return {st:st,na:na}}
 function planilla(items){ROWS=items.map(function(c){var e=estado(c);return {c:c,p:e.st.p.slice(),na:e.na.slice(),nota:e.st.nota||"",b:e.st.b||[],t:e.st.t||""}});
-return '<div class="leyenda">Toca una celda para cambiarla: <span><i style="background:#f1eff8"></i>0</span>→<span><i style="background:#fdf0d5"></i>25</span>→<span><i style="background:#fdf0d5"></i>50</span>→<span><i style="background:#d7ecc4"></i>75</span>→<span><i style="background:#2e7d32"></i>100</span>→<span><i style="border:1px dashed #cfcbe3"></i>N/A (no aplica)</span>· <b style="color:var(--ok)">Se guarda solo.</b></div>'
+return '<div class="hoy" id="hoyb">'+avisoHoy()+'</div><div class="leyenda">Toca una celda para cambiarla: <span><i style="background:#f1eff8"></i>0</span>→<span><i style="background:#fdf0d5"></i>25</span>→<span><i style="background:#fdf0d5"></i>50</span>→<span><i style="background:#d7ecc4"></i>75</span>→<span><i style="background:#2e7d32"></i>100</span>→<span><i style="border:1px dashed #cfcbe3"></i>N/A (no aplica)</span>· <b style="color:var(--ok)">Se guarda solo.</b></div>'
 +'<div class="tw"><table class="pl"><thead><tr><th style="text-align:left;padding-left:10px;width:22%">Empresa</th>'
-+STEPS.map(function(s,j){return '<th title="'+esc(s[1])+'">'+(j+1)+'. '+CORTO[j]+'<small>días '+s[2]+'</small></th>'}).join("")
++STEPS.map(function(s,j){var vc=new Date()>plazo(j);return '<th'+(vc?' class="venc"':'')+' title="'+esc(s[1])+' · plazo '+ddmm(plazo(j))+'">'+(j+1)+'. '+CORTO[j]+'<small>días '+s[2]+(vc?' · venció':'')+'</small></th>'}).join("")
 +'<th>Total</th><th style="width:15%">Nota</th><th style="width:8%"></th><th style="width:9%">Fecha y hora<br>de registro</th></tr></thead><tbody>'+ROWS.map(filaPl).join("")+'</tbody></table></div>';}
 function filaPl(r,i){return '<tr data-r="'+i+'"><td class="e" title="'+esc(r.c.emp)+'">'+esc(corto(r.c.emp))+'</td>'
-+r.p.map(function(v,j){var n=r.na[j];return '<td><button type="button" class="cel '+(n?'vna':'v'+v)+'" data-j="'+j+'" title="'+esc(STEPS[j][1])+'">'+(n?'N/A':v)+'</button></td>'}).join("")
++r.p.map(function(v,j){var n=r.na[j];return '<td><button type="button" class="cel '+(n?'vna':'v'+v)+(atrasado(j,v,n)?' atr':'')+'" data-j="'+j+'" title="'+esc(STEPS[j][1])+(atrasado(j,v,n)?' · venció el '+ddmm(plazo(j)):'')+'">'+(n?'N/A':v)+'</button></td>'}).join("")
 +'<td class="tot" id="pt'+i+'">'+avgOf(r.p,r.na)+'%</td><td><input class="pnota" value="'+esc(r.nota)+'" placeholder="Qué falta (opcional)"></td>'
 +'<td><button type="button" class="btn g p100" style="padding:5px 9px;font-size:12px">Todo 100</button></td><td class="est"><small id="ps'+i+'"'+(r.t?' class="ok"':'')+'>'+(r.t?esc(r.t):"Sin registrar")+'</small></td></tr>'}
 function pintar(i){var r=ROWS[i],tr=document.querySelector('tr[data-r="'+i+'"]');if(!tr)return;
-tr.querySelectorAll(".cel").forEach(function(b,j){var n=r.na[j];b.className="cel "+(n?"vna":"v"+r.p[j]);b.textContent=n?"N/A":r.p[j]});$("#pt"+i).textContent=avgOf(r.p,r.na)+"%";}
+tr.querySelectorAll(".cel").forEach(function(b,j){var n=r.na[j];b.className="cel "+(n?"vna":"v"+r.p[j])+(atrasado(j,r.p[j],n)?" atr":"");b.textContent=n?"N/A":r.p[j]});$("#pt"+i).textContent=avgOf(r.p,r.na)+"%";avisoHoy();}
 function programar(i){var s=$("#ps"+i);if(s){s.className="";s.textContent="Guardando…"}clearTimeout(TIMER[i]);TIMER[i]=setTimeout(function(){delete TIMER[i];guardarFila(i)},2000)}
 function pendientes(){Object.keys(TIMER).forEach(function(i){clearTimeout(TIMER[i]);delete TIMER[i];guardarFila(Number(i))})}
 function enviarAvance(c,p,na,nota,bks){
@@ -372,11 +376,11 @@ return '<tr class="cob" data-emp="'+esc(c.emp)+'" data-i="'+i+'" data-cst="'+esc
 +'<td><span class="cpag"'+(pg?'':' style="display:none"')+'><input type="text" class="ccpe" value="'+esc(k.cpe||"")+'" placeholder="Opcional"></span></td>'
 +'<td><span class="cpag"'+(pg?'':' style="display:none"')+'>'+constHtml(k)+'</span></td>'
 +'<td><input type="text" class="cnota" value="'+esc(k.nota||"")+'" placeholder="Ej. paga a fin de mes"><span class="cmsg">'+(k.t?"Registrado "+esc(k.t):"Sin registrar")+'</span></td></tr>'}
-function cobTabla(items){return '<div class="tw"><table class="pl"><thead><tr><th style="text-align:left;padding-left:10px;width:20%">Empresa</th><th style="width:9%">Honorario S/</th><th style="width:22%">Estado</th><th style="width:9%">Cobrado S/<small>si es parcial</small></th><th style="width:11%">Fecha de cobro</th><th style="width:10%">Medio</th><th style="width:9%">N° RH / FT</th><th style="width:11%">Constancia<small>RH o FT</small></th><th>Nota</th></tr></thead><tbody>'
+function cobTabla(items){return '<div class="tw"><table class="pl"><thead><tr><th style="text-align:left;padding-left:10px;width:20%">Empresa</th><th style="width:9%">Honorario S/</th><th style="width:22%">Estado</th><th style="width:9%">Cobrado S/<small>si es parcial</small></th><th style="width:11%">Fecha de cobro</th><th style="width:10%">Medio</th><th style="width:9%">N° factura</th><th style="width:11%">Constancia<small>de pago</small></th><th>Nota</th></tr></thead><tbody>'
 +items.map(cobFila).join("")+'</tbody></table></div>'}
-// ---- constancia de pago (RH o FT): se sube a Drive del dueño via Apps Script; el enlace va a la nota de cobranza
+// ---- constancia de pago de la factura: se sube a Drive del dueño via Apps Script; el enlace va a la nota de cobranza
 var UP_URL="https://script.google.com/macros/s/AKfycbxCH7w5YuELqBnVZC_dGvZ1Pvy2nc7MVrpcKaZyWJTLxqv4Thsg5112-zuwdAv0j3qA/exec",UP_K="qc-cob-2026";
-function constHtml(k){return '<span class="cconst"><input type="file" class="cfile" accept="application/pdf,image/*" hidden><button type="button" class="cup">📎 '+(k.cst?'Cambiar':'Subir RH / FT')+'</button>'+(k.cst?'<a class="cver" href="'+esc(k.cst)+'" target="_blank" rel="noopener">Ver ✓</a>':'')+'</span>'}
+function constHtml(k){return '<span class="cconst"><input type="file" class="cfile" accept="application/pdf,image/*" hidden><button type="button" class="cup">📎 '+(k.cst?'Cambiar':'Constancia de pago')+'</button>'+(k.cst?'<a class="cver" href="'+esc(k.cst)+'" target="_blank" rel="noopener">Ver ✓</a>':'')+'</span>'}
 function subirConstancia(bx,file){var box=bx.querySelector(".cconst"),bt=box.querySelector(".cup"),m=bx.querySelector(".cmsg");
 var tipo=file.type||(/\.pdf$/i.test(file.name)?"application/pdf":"");
 if(!/^(application\/pdf|image\/)/.test(tipo)){m.className="cmsg bad";m.textContent="Solo PDF o foto.";return}
@@ -386,10 +390,20 @@ rd.onload=function(){var b64=String(rd.result).split(",")[1];
 fetch(UP_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({k:UP_K,mes:MES_SEL,who:who,emp:bx.dataset.emp,nombre:file.name,tipo:tipo,data:b64})})
 .then(function(r){return r.json()}).then(function(j){if(!j.ok)throw new Error(j.error||"error");bx.dataset.cst=j.url;
 box.outerHTML=constHtml({cst:j.url});sucio(bx);var mm=bx.querySelector(".cmsg");mm.className="cmsg ok";mm.textContent="Constancia subida ✓ · toca «Guardar cobranza»";})
-.catch(function(e){bt.disabled=false;bt.textContent="📎 Subir RH / FT";m.className="cmsg bad";m.textContent="No se pudo subir ("+e.message+"). Intenta otra vez.";});};
+.catch(function(e){bt.disabled=false;bt.textContent="📎 Constancia de pago";m.className="cmsg bad";m.textContent="No se pudo subir ("+e.message+"). Intenta otra vez.";});};
 rd.readAsDataURL(file);}
 $("#list").addEventListener("click",function(e){var b=e.target.closest(".cup");if(!b)return;b.parentElement.querySelector(".cfile").click();});
 $("#list").addEventListener("change",function(e){if(!e.target.classList.contains("cfile"))return;var f=e.target.files[0];if(f)subirConstancia(e.target.closest(".cob"),f);});
+// ---- cronograma: plazo de cada paso = último día de "días X–Y" del mes siguiente al reportado
+function plazo(j){var m=/(\d+)\s*$/.exec(STEPS[j][2]),y=Number(MES_SEL.slice(0,4)),mo=Number(MES_SEL.slice(5,7));return new Date(y,mo,Number(m[1]),23,59,59)}
+function atrasado(j,v,na){return !na&&Number(v)<100&&new Date()>plazo(j)}
+function ventana(j){var t=STEPS[j][2].split(" y ").pop(),m=/(\d+)\D+(\d+)/.exec(t);return m?[Number(m[1]),Number(m[2])]:null}
+function hoyToca(){var d=new Date(),mo=Number(MES_SEL.slice(5,7));if(d.getMonth()!==mo%12)return [];
+return STEPS.map(function(s,j){var w=ventana(j);return w&&d.getDate()>=w[0]&&d.getDate()<=w[1]?(j+1)+". "+CORTO[j]+" (días "+w[0]+"–"+w[1]+")":null}).filter(Boolean)}
+function ddmm(d){return (d.getDate()<10?"0":"")+d.getDate()+"/"+(d.getMonth()<9?"0":"")+(d.getMonth()+1)}
+function avisoHoy(){var n=0;ROWS.forEach(function(r){r.p.forEach(function(v,j){if(atrasado(j,v,r.na[j]))n++})});var t=hoyToca();
+var el=document.getElementById("hoyb");var h=(t.length?'<span>📅 <b>Hoy toca:</b> '+esc(t.join(" · "))+'</span>':'')+(n?'<span class="malo">⚠ '+n+' casilla'+(n===1?'':'s')+' atrasada'+(n===1?'':'s')+' (en rojo)</span>':'<span style="color:var(--ok);font-weight:700">✓ Nada atrasado según el cronograma</span>');
+if(el)el.innerHTML=h;return h}
 var REM={},REMEMP={};
 var PUB="https://docs.google.com/spreadsheets/d/e/2PACX-1vQC8hsPB-fp1TEA-fMBVW_-IxzHDOn2z_u8XRo-EqSFqi-_LLp0O19W_nkGtjrGHdy9QyfnXkvvBL7R/pub?gid=296229147&single=true&output=csv";
 function csv(s){var out=[],row=[],f="",q=false;for(var i=0;i<s.length;i++){var c=s[i];if(q){if(c=='"'){if(s[i+1]=='"'){f+='"';i++}else q=false}else f+=c}else if(c=='"')q=true;else if(c==","){row.push(f);f=""}else if(c=="\n"){row.push(f);out.push(row);row=[];f=""}else if(c!="\r")f+=c}if(f||row.length){row.push(f);out.push(row)}return out}
