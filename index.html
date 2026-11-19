@@ -82,6 +82,18 @@ input[type=text]{flex:1;min-width:180px;font:inherit;font-size:14px;padding:9px 
 .opt button{flex:1;font:inherit;font-size:13px;font-weight:700;padding:8px 0;border:1.5px solid var(--ln);border-radius:8px;background:var(--sf);color:var(--fg);cursor:pointer}
 .opt button.on{background:var(--c);border-color:var(--c);color:#fff}
 .st.na span{color:var(--mu);font-size:12px}
+
+.cob{margin-top:14px;padding:12px 14px;border:1px dashed #b8862a;border-radius:10px;background:#fffaf0}
+.cob h4{margin:0 0 4px;font-size:15px;color:#7a5a12}.cob .sub{margin:0 0 10px;font-size:12px;color:var(--mu)}
+.cob .row{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:8px 0}.cob label{font-size:13px;color:var(--mu)}
+.cob input[type=text],.cob input[type=number],.cob input[type=date]{padding:8px 10px;border:1px solid var(--ln);border-radius:8px;font:inherit;font-size:14px;background:#fff}
+.cob input.mon{width:120px}.cob input.cnota{flex:1;min-width:180px}
+.cbo{display:flex;flex-wrap:wrap;gap:6px}.cbo button{padding:7px 12px;border:1px solid var(--ln);border-radius:20px;background:#fff;font:inherit;font-size:13px;cursor:pointer}
+.cbo button.on{background:#b8862a;border-color:#b8862a;color:#fff}.cbo.est button.on[data-x="Pendiente"]{background:#c62828;border-color:#c62828}
+.cbo.est button.on[data-x="Cobrado"]{background:#2e7d32;border-color:#2e7d32}
+.cbadge{font-size:11px;padding:2px 8px;border-radius:10px;margin-left:6px;white-space:nowrap}.cbadge.Cobrado{background:#e6f4ea;color:#2e7d32}
+.cbadge.Pendiente{background:#fdecec;color:#c62828}.cbadge.Parcial{background:#fff3df;color:#9a6a00}
+.cmsg{font-size:13px}.cmsg.ok{color:#2e7d32}.cmsg.bad{color:#c62828}
 </style></head><body>
 <header><h1>Avance del mes · Qorihuata</h1><p>1) Elige tu nombre. 2) Confirma tus empresas. 3) Registra tu avance con las barras.</p></header>
 <main>
@@ -91,6 +103,25 @@ input[type=text]{flex:1;min-width:180px;font:inherit;font-size:14px;padding:9px 
 </main>
 <script>
 var FORM="https://docs.google.com/forms/d/e/1FAIpQLSfbtvi94Aehywh2SK3_qTuwgvULFTQbDbGrmcueqXEfesNTGA/formResponse";
+// ---- Cobranza de honorarios: formulario PRIVADO aparte (no se publica), no afecta el % de avance
+var FORM_COB="https://docs.google.com/forms/d/e/1FAIpQLSfhm7-JJsPopd47j4C_m0N4fqn1dL9cs2XcHT-gMdbARSDNkQ/formResponse";
+var C_WHO="entry.1911344112",C_EMP="entry.985908557",C_PER="entry.336774317",C_HON="entry.1523527826",C_EST="entry.1097130401",
+C_MON="entry.2085742585",C_FEC="entry.1370738613",C_MED="entry.880099782",C_CPE="entry.111373337",C_NOT="entry.1020459106";
+var HONORARIOS={}; // honorario fijo por empresa (lo carga Jabes); si no está, la contadora lo escribe y se recuerda
+var MEDIOS=["Transferencia","Yape / Plin","Efectivo","Depósito"],ESTADOS=["Pendiente","Parcial","Cobrado"];
+function cobKey(emp){return "cob:"+MES_SEL+":"+who+":"+emp}
+function cobHtml(c,i){var k=load(cobKey(c.emp))||{};var hon=HONORARIOS[c.emp]||k.hon||load("hon:"+who+":"+c.emp)||"";
+var est=k.est||"",med=k.med||"";
+return '<div class="cob" data-emp="'+esc(c.emp)+'" data-i="'+i+'"><h4>💰 Cobranza del mes ('+esc(MESANT)+')</h4><p class="sub">Aparte del avance: no cambia tu %. Registra si el cliente ya pagó los servicios contables del mes.</p>'
++'<div class="row"><label>Honorario S/</label><input type="number" min="0" step="0.01" class="mon hon" value="'+esc(hon)+'"'+(HONORARIOS[c.emp]?' readonly title="Monto fijo cargado por Jabes"':'')+' placeholder="0.00"></div>'
++'<div class="row"><label>Estado</label><div class="cbo est">'+ESTADOS.map(function(x){return '<button type="button" data-x="'+x+'"'+(x===est?' class="on"':'')+'>'+(x==="Parcial"?"Cobrado parcial":x)+'</button>'}).join('')+'</div></div>'
++'<div class="row cpart"'+(est==="Parcial"?'':' style="display:none"')+'><label>Monto cobrado S/</label><input type="number" min="0" step="0.01" class="mon cmon" value="'+esc(k.mon||"")+'" placeholder="0.00"></div>'
++'<div class="row cpag"'+(est&&est!=="Pendiente"?'':' style="display:none"')+'><label>Fecha de cobro</label><input type="date" class="cfec" value="'+esc(k.fec||"")+'">'
++'<label>Medio</label><div class="cbo med">'+MEDIOS.map(function(x){return '<button type="button" data-x="'+x+'"'+(x===med?' class="on"':'')+'>'+x+'</button>'}).join('')+'</div></div>'
++'<div class="row cpag"'+(est&&est!=="Pendiente"?'':' style="display:none"')+'><label>N° recibo / factura</label><input type="text" class="ccpe" value="'+esc(k.cpe||"")+'" placeholder="Opcional"></div>'
++'<div class="row"><input type="text" class="cnota" value="'+esc(k.nota||"")+'" placeholder="Nota de cobranza (opcional): ej. paga a fin de mes"></div>'
++'<div class="row"><button type="button" class="btn csv">Guardar cobranza</button><span class="cmsg">'+(k.t?"Guardado "+esc(k.t):"")+'</span></div></div>';}
+function cobBadge(emp){var k=load(cobKey(emp));return k&&k.est?'<span class="cbadge '+k.est+'">'+(k.est==="Cobrado"?"Cobrado":k.est==="Parcial"?"Cobro parcial":"Cobro pendiente")+'</span>':''}
 var E_WHO="entry.444919183", E_EMP="entry.964281956", E_NOTA="entry.312012141";
 var STEPS=[
 ["entry.1746248518","Cálculo de planillas","28–30 y 1–2","--s1"],
@@ -154,12 +185,12 @@ var rm=REM[MES_SEL+"|"+who+"|"+c.emp];if(rm&&(!st||!st.ts||rm.ts>st.ts)){st={p:r
 st=st||{p:STEPS.map(function(){return 0}),nota:"",t:""};na=na||STEPS.map(function(){return false});
 var avg=avgOf(st.p,na);
 var h='<details data-i="'+i+'" data-label="'+esc(c.label)+'" data-emp="'+esc(c.emp)+'" data-extra="'+(c.extra?1:0)+'"><summary><span class="nm">'+esc(c.emp)+'</span><span class="pc" id="pc'+i+'">'+avg+'%</span>';
-h+='<span class="bar"><i id="b'+i+'" style="width:'+avg+'%"></i></span><span class="meta" id="m'+i+'">'+(st.t?"Guardado "+esc(st.t):"Sin guardar aún")+'</span></summary><div class="steps">';
+h+='<span class="bar"><i id="b'+i+'" style="width:'+avg+'%"></i></span><span class="meta" id="m'+i+'">'+(st.t?"Guardado "+esc(st.t):"Sin guardar aún")+'</span><span id="cb'+i+'">'+cobBadge(c.emp)+'</span></summary><div class="steps">';
 STEPS.forEach(function(s,j){var v=st.p[j],n=!!na[j];
 h+='<div class="st'+(n?" na":(v>=100?" done":""))+'" style="--c:var('+s[3]+')"><b><em>'+(j+1)+'. '+s[1]+' <small>· días '+s[2]+'</small></em><label class="nal"><input type="checkbox" class="nachk"'+(n?' checked':'')+'>No aplica</label></b>';
 h+='<input type="range" min="0" max="100" step="25" value="'+v+'" style="--p:'+v+'%" aria-label="'+esc(s[1])+'"'+(n?' disabled':'')+'><span>'+(n?'N/A':v+'%')+'</span><div class="opt">'+[0,25,50,75,100].map(function(o){return '<button type="button" data-v="'+o+'"'+(o==v?' class="on"':'')+'>'+o+'%</button>'}).join('')+'</div>'+(j===1?banksHtml(st.b||[]):'')+'</div>';});
 h+='<div class="foot"><input type="text" class="nota" value="'+esc(st.nota)+'" placeholder="Nota: qué falta (opcional)">';
-h+='<button type="button" class="btn g all">Todo al 100%</button><button type="button" class="btn sv">Guardar</button><span class="msg"></span></div></div></details>';
+h+='<button type="button" class="btn g all">Todo al 100%</button><button type="button" class="btn sv">Guardar</button><span class="msg"></span></div>'+cobHtml(c,i)+'</div></details>';
 return h;}
 function vals(d){return Array.prototype.map.call(d.querySelectorAll("input[type=range]"),function(r){return Number(r.value)})}
 function nas(d){return Array.prototype.map.call(d.querySelectorAll(".nachk"),function(x){return x.checked})}
@@ -196,6 +227,30 @@ fetch(FORM,{method:"POST",mode:"no-cors",body:f}).then(function(){
 var t=new Date().toLocaleString("es-PE",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
 save("v:"+MES_SEL+":"+who+":"+emp,{p:p,nota:nota,t:t,b:bks,ts:Date.now()});m.className="msg ok";m.textContent="Guardado ✓";$("#m"+d.dataset.i).textContent="Guardado "+t;b.disabled=false;
 }).catch(function(){m.className="msg bad";m.textContent="No se pudo guardar. Revisa tu internet e intenta otra vez.";b.disabled=false;});
+});
+// ---- eventos de cobranza (separados de los del avance)
+$("#list").addEventListener("click",function(e){var bx=e.target.closest(".cob");if(!bx)return;
+var bt=e.target.closest(".cbo button");if(bt){var g=bt.parentElement;g.querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===bt)});
+if(g.classList.contains("est")){var v=bt.dataset.x;bx.querySelector(".cpart").style.display=v==="Parcial"?"":"none";
+bx.querySelectorAll(".cpag").forEach(function(r){r.style.display=v==="Pendiente"?"none":""});
+if(v!=="Pendiente"&&!bx.querySelector(".cfec").value)bx.querySelector(".cfec").value=new Date().toISOString().slice(0,10);}
+bx.querySelector(".cmsg").textContent="Sin guardar";return;}
+if(!e.target.classList.contains("csv"))return;
+var m=bx.querySelector(".cmsg"),emp=bx.dataset.emp,on=function(c){var b=bx.querySelector(".cbo."+c+" button.on");return b?b.dataset.x:""};
+var est=on("est"),hon=bx.querySelector(".hon").value.trim(),mon=bx.querySelector(".cmon").value.trim(),fec=bx.querySelector(".cfec").value,
+med=on("med"),cpe=bx.querySelector(".ccpe").value.trim(),nota=bx.querySelector(".cnota").value.trim();
+if(!est){m.className="cmsg bad";m.textContent="Elige el estado: Pendiente, Cobrado parcial o Cobrado.";return}
+if(!hon){m.className="cmsg bad";m.textContent="Escribe el honorario del mes.";return}
+if(est==="Parcial"&&!mon){m.className="cmsg bad";m.textContent="Escribe cuánto se cobró.";return}
+if(est==="Cobrado")mon=hon;if(est==="Pendiente"){mon="0";fec="";med="";cpe=""}
+var f=new URLSearchParams();f.append(C_WHO,who);f.append(C_EMP,emp);f.append(C_PER,MES_SEL);f.append(C_HON,hon);f.append(C_EST,est);
+f.append(C_MON,mon);if(fec)f.append(C_FEC,fec);if(med)f.append(C_MED,med);if(cpe)f.append(C_CPE,cpe);if(nota)f.append(C_NOT,nota);
+var b=e.target;b.disabled=true;m.className="cmsg";m.textContent="Guardando…";
+fetch(FORM_COB,{method:"POST",mode:"no-cors",body:f}).then(function(){
+var t=new Date().toLocaleString("es-PE",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+save(cobKey(emp),{hon:hon,est:est,mon:mon,fec:fec,med:med,cpe:cpe,nota:nota,t:t,ts:Date.now()});save("hon:"+who+":"+emp,hon);
+m.className="cmsg ok";m.textContent="Cobranza guardada ✓";b.disabled=false;var cb=document.getElementById("cb"+bx.dataset.i);if(cb)cb.innerHTML=cobBadge(emp);
+}).catch(function(){m.className="cmsg bad";m.textContent="No se pudo guardar. Revisa tu internet e intenta otra vez.";b.disabled=false;});
 });
 var REM={},REMEMP={};
 var PUB="https://docs.google.com/spreadsheets/d/e/2PACX-1vQC8hsPB-fp1TEA-fMBVW_-IxzHDOn2z_u8XRo-EqSFqi-_LLp0O19W_nkGtjrGHdy9QyfnXkvvBL7R/pub?gid=296229147&single=true&output=csv";
