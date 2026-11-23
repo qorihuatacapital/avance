@@ -107,7 +107,7 @@ input[type=text]{flex:1;min-width:180px;font:inherit;font-size:14px;padding:9px 
 .cob.fila .row{margin:5px 0;gap:6px 10px}.cob.fila .cmsg{font-size:12px;color:var(--mu)}.cob.fila .cnota{padding:6px 10px!important;font-size:13px!important}.cob.fila.sucio{border-color:#b8862a;box-shadow:0 0 0 2px #f6e7c6}
 .cobfoot{position:sticky;bottom:0;background:var(--bg);padding:10px 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 
-main.ancho{max-width:1200px}
+main.ancho{max-width:none;padding-left:16px;padding-right:16px}
 .tw{overflow-x:auto;background:#fff;border:1px solid var(--ln);border-radius:10px}
 table.pl{width:100%;border-collapse:collapse;font-size:13px;min-width:900px}
 table.pl th{background:#f7f5fe;font-size:11.5px;font-weight:700;color:var(--mu);padding:8px 4px;border-bottom:1px solid var(--ln);text-align:center;line-height:1.2;vertical-align:bottom}
@@ -144,10 +144,25 @@ select.smes.sok{background:#2e7d32;color:#fff;border-color:#2e7d32}select.smes.s
 select.smes.sna{background:#fff;color:#9a97b3;border-style:dashed}select.smes.venc8{box-shadow:0 0 0 2px #c62828}small.atrm{display:block;font-size:10.5px;color:#b26a00;font-weight:700;margin-top:2px}small.okm{display:block;font-size:10.5px;color:#2e7d32;font-weight:700;margin-top:2px}
 em.sub8{display:block;font-style:normal;font-size:10px;color:#7a5a12;font-weight:700;margin-top:2px}
 .s8card input[type=range],.s8card .opt,.s8card>span,.s8card .nal{display:none}.kbox{display:flex;flex-direction:column;gap:8px;margin-top:6px}.kbox label{font-size:13px;font-weight:600;display:flex;flex-direction:column;gap:3px}
+
+/* v13 PC compacto */
+body.elegido header{padding:8px 16px}body.elegido header p{display:none}body.elegido header h1{font-size:17px}
+body.elegido #selbox{padding:8px 12px;gap:6px 16px;align-items:center}body.elegido #selbox .lbl,body.elegido #hoy{display:none}
+body.elegido #who button:not([aria-pressed=true]){display:none}body.elegido #who button[aria-pressed=true]{padding:6px 14px}
+body.elegido #who button[aria-pressed=true]::after{content:" · cambiar";font-weight:400;font-size:12px;opacity:.85}
+body.elegido select#mes{padding:5px 8px}body.elegido #hint{font-size:12.5px}
+main.ancho .tw{overflow:visible}table.pl{min-width:0}table.pl th{position:sticky;top:var(--thtop,0px);z-index:5;font-size:10.5px;padding:6px 2px}
+table.pl th small{font-size:9.5px}table.pl td{padding:3px 2px}table.pl td.e{position:sticky;left:0;background:#fff;z-index:2;max-width:200px;font-size:12.5px}
+.cel{min-width:38px;padding:7px 0;font-size:12px}td.tdm{min-width:96px}select.smes{font-size:11.5px;padding:5px 2px}
+th.thn{width:16%}table.pl input.pnota{min-width:110px;padding:5px 6px}td.tot{font-size:13px}
+td.tdp{white-space:nowrap}button.p100{padding:5px 7px;border:1px solid var(--ln);border-radius:6px;background:var(--soft);font:inherit;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+td.est small{font-size:10.5px}
+main.ancho #hint{display:none}main.ancho #list>.box:first-child{padding:6px 12px}main.ancho .leyenda{font-size:11.5px}main.ancho .tb button{padding:7px 10px}main.ancho .hoy{padding:6px 10px;font-size:12.5px}
+@media (max-width:1300px){main.ancho .tw{overflow-x:auto}table.pl th{position:static}}
 </style></head><body>
 <header><h1>Avance del mes · Qorihuata</h1><p>1) Elige tu nombre. 2) Confirma tus empresas. 3) Registra tu avance con las barras.</p></header>
 <main>
-<div class="box" style="display:flex;flex-wrap:wrap;gap:14px 24px;align-items:flex-end"><div><p class="lbl">¿Quién eres?</p><div class="who" id="who"></div></div><div><p class="lbl">Mes que reportas</p><select id="mes"></select><p class="note" id="hoy" style="margin-top:6px"></p></div></div>
+<div class="box" id="selbox" style="display:flex;flex-wrap:wrap;gap:14px 24px;align-items:flex-end"><div><p class="lbl">¿Quién eres?</p><div class="who" id="who"></div></div><div><p class="lbl">Mes que reportas</p><select id="mes"></select><p class="note" id="hoy" style="margin-top:6px"></p></div></div>
 <p class="note" id="hint">Toca tu nombre para empezar.</p>
 <div id="list"></div>
 </main>
@@ -209,7 +224,7 @@ $("#hoy").textContent="Fecha de llenado: "+new Date().toLocaleDateString("es-PE"
 $("#mes").innerHTML=MESES_OPC.map(function(o,i){return '<option value="'+i+'">'+o.t+'</option>'}).join("");
 $("#mes").onchange=function(){setMes(Number(this.value));if(who)pick(who);};
 $("#who").innerHTML=Object.keys(EMP).map(function(n){return '<button type="button" aria-pressed="false" data-n="'+n+'">'+n+'</button>'}).join("");
-$("#who").onclick=function(e){var b=e.target.closest("button");if(b)pick(b.dataset.n)};
+$("#who").onclick=function(e){var b=e.target.closest("button");if(!b)return;if(document.body.classList.contains("elegido")&&b.dataset.n===who){document.body.classList.remove("elegido");return}pick(b.dataset.n)};
 
 function pick(n){
 who=n;save("who",n);if(n!=="Brenda"&&document.getElementById("avx"))document.getElementById("avx").remove();avisoEECC(n);
@@ -229,6 +244,7 @@ $("#list").innerHTML='<div class="box" style="padding:0;overflow:hidden"><div cl
 '<div class="foot" style="padding-top:14px"><button type="button" class="btn" data-yn="fin"'+(n?'':' disabled')+'>Confirmar ('+n+') y llenar mi informe</button></div></div></div>';}
 
 function showAvance(conf){
+document.body.classList.add("elegido");
 pendientes();PL=vistaPlanilla();document.querySelector("main").classList.toggle("ancho",PL);
 var items=conf.si.map(function(e){return EMP[who].indexOf(e)>=0?{emp:e,label:who+" · "+e}:{emp:e,label:OTRA,extra:true}});
 $("#hint").textContent=items.length?("Paso 3 de 3: hola "+who+", registra tu avance. Abre cada empresa, mueve las barras y toca Guardar. Si un paso no corresponde a la empresa (sin planilla, sin banco, etc.), marca «No aplica» y no contará en el %."):("No confirmaste empresas. Toca Cambiar mis empresas para agregarlas.");
@@ -238,7 +254,7 @@ $("#list").innerHTML='<div class="box" style="display:flex;justify-content:space
 +'<div class="chips" id="chips"'+(PL?' style="display:none"':'')+'>'+items.map(chip).join("")+'</div></div>'
 +'<div id="pav" style="display:flex;flex-direction:column;gap:10px">'+(PL?planilla(items):items.map(card).join(""))+'</div>'
 +'<div id="pcb" style="display:none;flex-direction:column;gap:10px">'+cobPanel(items)+'</div>';
-verTab(load("tab")||"av");}
+verTab(load("tab")||"av");fijarCabecera();}
 var ITEMS=[];
 function corto(e){var x=e.replace(/[\s,]+(S\.?A\.?C\.?|E\.?I\.?R\.?L\.?|SOCIEDAD ANONIMA CERRADA|S\.?R\.?L\.?|S\.?A\.?)\.?\s*$/i,"").replace(/SERVICIOS GENERALES/i,"Serv. Gen.").replace(/^INMOBILIARIA\s+/i,"").replace(/\s*-\s*IPTM.*$/i,"");return x.length>24?x.slice(0,23)+"…":x}
 function chip(c,i){var k=load(cobKey(c.emp));return '<button type="button" id="ch'+i+'" data-go="'+i+'"><span class="dot '+(k&&k.est?k.est:'')+'" id="dt'+i+'"></span>'+esc(corto(c.emp))+' <em></em></button>'}
@@ -353,11 +369,11 @@ function planilla(items){ROWS=items.map(function(c){var e=estado(c);var ad=aldia
 return '<div class="hoy" id="hoyb">'+avisoHoy()+'</div><div class="leyenda"><b>8. Provisiones</b> (las anteriores para ponerse al día + el mes actual) y <b>9. Conciliaciones bancarias</b>: elige <b>hasta qué mes</b> ya están al día. Si la empresa tiene varios bancos, pon el mes del banco más atrasado.</div><div class="leyenda">Toca una celda para cambiarla: <span><i style="background:#f1eff8"></i>0</span>→<span><i style="background:#fdf0d5"></i>25</span>→<span><i style="background:#fdf0d5"></i>50</span>→<span><i style="background:#d7ecc4"></i>75</span>→<span><i style="background:#2e7d32"></i>100</span>→<span><i style="border:1px dashed #cfcbe3"></i>N/A (no aplica)</span>· <b style="color:var(--ok)">Se guarda solo.</b></div>'
 +'<div class="tw"><table class="pl"><thead><tr><th style="text-align:left;padding-left:10px;width:22%">Empresa</th>'
 +STEPS.map(function(s,j){var vc=new Date()>plazo(j);return '<th'+(vc?' class="venc"':'')+' title="'+esc(s[1])+' · plazo '+ddmm(plazo(j))+'">'+(j+1)+'. '+CORTO[j]+'<small>días '+s[2]+(vc?' · venció':'')+'</small>'+(j===P8?'<em class="sub8">al día hasta</em></th><th'+(vc?' class="venc"':'')+' title="Conciliaciones bancarias · último mes conciliado">9. Conciliaciones<small>días '+s[2]+(vc?' · venció':'')+'</small><em class="sub8">conciliado hasta</em>':'')+'</th>'}).join("")
-+'<th>Total</th><th style="width:15%">Nota</th><th style="width:8%"></th><th style="width:9%">Fecha y hora<br>de registro</th></tr></thead><tbody>'+ROWS.map(filaPl).join("")+'</tbody></table></div>';}
++'<th>Total</th><th class="thn">Nota</th><th></th><th>Registro</th></tr></thead><tbody>'+ROWS.map(filaPl).join("")+'</tbody></table></div>';}
 function filaPl(r,i){return '<tr data-r="'+i+'"><td class="e" title="'+esc(r.c.emp)+'">'+esc(corto(r.c.emp))+'</td>'
 +r.p.map(function(v,j){var n=r.na[j];if(j===P8)return tdsAldia(r);return '<td><button type="button" class="cel '+(n?'vna':'v'+v)+(atrasado(j,v,n)?' atr':'')+(j===P8?' s8':'')+'" data-j="'+j+'" title="'+esc(STEPS[j][1])+(atrasado(j,v,n)?' · venció el '+ddmm(plazo(j)):'')+'">'+celTxt(j,v,n)+'</button></td>'}).join("")
 +'<td class="tot" id="pt'+i+'">'+avgOf(r.p,r.na)+'%</td><td><input class="pnota" value="'+esc(r.nota)+'" placeholder="Qué falta (opcional)"></td>'
-+'<td><button type="button" class="btn g p100" style="padding:5px 9px;font-size:12px">Todo 100</button></td><td class="est"><small id="ps'+i+'"'+(r.t?' class="ok"':'')+'>'+(r.t?esc(r.t):"Sin registrar")+'</small></td></tr>'}
++'<td class="tdp"><button type="button" class="p100" title="Poner todos los pasos al 100 %">✓ 100</button></td><td class="est"><small id="ps'+i+'"'+(r.t?' class="ok"':'')+'>'+(r.t?esc(corta(r.t)):"Sin registrar")+'</small></td></tr>'}
 function pintar(i){var r=ROWS[i],tr=document.querySelector('tr[data-r="'+i+'"]');if(!tr)return;
 tr.querySelectorAll(".cel").forEach(function(b,j){var n=r.na[j];b.className="cel "+(n?"vna":"v"+r.p[j])+(atrasado(j,r.p[j],n)?" atr":"")+(j===P8?" s8":"");b.textContent=celTxt(j,r.p[j],n)});$("#pt"+i).textContent=avgOf(r.p,r.na)+"%";avisoHoy();}
 function programar(i){var s=$("#ps"+i);if(s){s.className="";s.textContent="Guardando…"}clearTimeout(TIMER[i]);TIMER[i]=setTimeout(function(){delete TIMER[i];guardarFila(i)},2000)}
@@ -370,7 +386,7 @@ var t=fh(new Date());
 save("v:"+MES_SEL+":"+who+":"+c.emp,{p:p.slice(),nota:nota,t:t,b:bks,ts:Date.now()});save("na:"+who+":"+c.emp,na.slice());return t;});}
 function guardarFila(i){var r=ROWS[i];if(!r)return;var s=$("#ps"+i);if(s){s.className="";s.textContent="Guardando…"}
 if(r.aldia){r.aldia=false;enviarAldia(r.c.emp,r.prov||"",r.conc||"").catch(function(){r.aldia=true})}
-enviarAvance(r.c,r.p,r.na,r.nota.trim(),r.b).then(function(t){r.t=t;var s=$("#ps"+i);if(s){s.className="ok";s.textContent=t+" ✓"}})
+enviarAvance(r.c,r.p,r.na,r.nota.trim(),r.b).then(function(t){r.t=t;var s=$("#ps"+i);if(s){s.className="ok";s.textContent=corta(t)+" ✓"}})
 .catch(function(){var s=$("#ps"+i);if(s){s.className="bad";s.textContent="Sin internet: no se guardó"}});}
 window.addEventListener("beforeunload",pendientes);
 $("#list").addEventListener("click",function(e){var tr=e.target.closest("tr[data-r]");if(!tr)return;var i=Number(tr.dataset.r),r=ROWS[i];
@@ -448,6 +464,10 @@ var st=sl.closest(".st");if(!st)return;var bx=st.querySelector(".kbox"),pv=bx.qu
 bx.querySelector(".kprovt").innerHTML=tagMes(pv);bx.querySelector(".kconct").innerHTML=tagMes(cv);
 var ck=st.querySelector(".nachk");if(ck.checked!==y.na){ck.checked=y.na;ck.dispatchEvent(new Event("change",{bubbles:true}))}
 var rg=st.querySelector("input[type=range]");rg.disabled=y.na;rg.value=y.v;rg.dispatchEvent(new Event("input",{bubbles:true}));});
+// ---- v13: fecha corta en la planilla (dd/mm hh:mm) y encabezado fijo debajo de las pestañas
+function corta(t){return String(t).replace(/\/\d{4}(?=\s)/,"")}
+function fijarCabecera(){var t=document.querySelector(".tabs");document.documentElement.style.setProperty("--thtop",(t?t.offsetHeight:0)+"px")}
+window.addEventListener("resize",fijarCabecera);
 var REM={},REMEMP={};
 var PUB="https://docs.google.com/spreadsheets/d/e/2PACX-1vQC8hsPB-fp1TEA-fMBVW_-IxzHDOn2z_u8XRo-EqSFqi-_LLp0O19W_nkGtjrGHdy9QyfnXkvvBL7R/pub?gid=296229147&single=true&output=csv";
 function csv(s){var out=[],row=[],f="",q=false;for(var i=0;i<s.length;i++){var c=s[i];if(q){if(c=='"'){if(s[i+1]=='"'){f+='"';i++}else q=false}else f+=c}else if(c=='"')q=true;else if(c==","){row.push(f);f=""}else if(c=="\n"){row.push(f);out.push(row);row=[];f=""}else if(c!="\r")f+=c}if(f||row.length){row.push(f);out.push(row)}return out}
