@@ -138,6 +138,12 @@ th.venc small{color:#c62828;font-weight:700}.hoy{display:flex;flex-wrap:wrap;gap
 
 .cel.s8{font-size:11px;padding:8px 2px;min-width:74px}.cel.s8.v0{background:#f1eff8;color:#7d7a99}.cel.s8.v50{background:#fdf0d5;color:#8a5a00}
 .todas8{display:block;margin:4px auto 0;padding:3px 7px;border:1px solid #b8862a;border-radius:6px;background:#fffaf0;color:#7a5a12;font:inherit;font-size:10.5px;font-weight:700;cursor:pointer}
+
+td.tdm{min-width:118px;vertical-align:top;padding-top:6px}select.smes{width:100%;padding:6px 4px;border-radius:6px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--ln)}
+select.smes.sok{background:#2e7d32;color:#fff;border-color:#2e7d32}select.smes.satr{background:#fdf0d5;color:#8a5a00;border-color:#e6c27a}select.smes.svacio{background:#f1eff8;color:#7d7a99}
+select.smes.sna{background:#fff;color:#9a97b3;border-style:dashed}select.smes.venc8{box-shadow:0 0 0 2px #c62828}small.atrm{display:block;font-size:10.5px;color:#b26a00;font-weight:700;margin-top:2px}small.okm{display:block;font-size:10.5px;color:#2e7d32;font-weight:700;margin-top:2px}
+em.sub8{display:block;font-style:normal;font-size:10px;color:#7a5a12;font-weight:700;margin-top:2px}
+.s8card input[type=range],.s8card .opt,.s8card>span,.s8card .nal{display:none}.kbox{display:flex;flex-direction:column;gap:8px;margin-top:6px}.kbox label{font-size:13px;font-weight:600;display:flex;flex-direction:column;gap:3px}
 </style></head><body>
 <header><h1>Avance del mes · Qorihuata</h1><p>1) Elige tu nombre. 2) Confirma tus empresas. 3) Registra tu avance con las barras.</p></header>
 <main>
@@ -256,8 +262,8 @@ var avg=avgOf(st.p,na);
 var h='<details data-i="'+i+'" data-label="'+esc(c.label)+'" data-emp="'+esc(c.emp)+'" data-extra="'+(c.extra?1:0)+'"><summary><span class="nm">'+esc(c.emp)+'</span><span class="pc" id="pc'+i+'">'+avg+'%</span>';
 h+='<span class="bar"><i id="b'+i+'" style="width:'+avg+'%"></i></span><span class="meta" id="m'+i+'">'+(st.t?"Registrado "+esc(st.t):"Sin guardar aún")+'</span></summary><div class="steps">';
 STEPS.forEach(function(s,j){var v=st.p[j],n=!!na[j];
-h+='<div class="st'+(n?" na":(v>=100?" done":""))+(atrasado(j,v,n)?" atr":"")+'" style="--c:var('+s[3]+')"><b><em>'+(j+1)+'. '+s[1]+' <small>· días '+s[2]+'</small></em><label class="nal"><input type="checkbox" class="nachk"'+(n?' checked':'')+'>No aplica</label></b>';
-h+='<input type="range" min="0" max="100" step="25" value="'+v+'" style="--p:'+v+'%" aria-label="'+esc(s[1])+'"'+(n?' disabled':'')+'><span>'+(n?'N/A':v+'%')+'</span><div class="opt">'+(j===P8?[0,50,100]:[0,25,50,75,100]).map(function(o){return '<button type="button" data-v="'+o+'"'+(o==v?' class="on"':'')+'>'+(j===P8?txt8(o):o+'%')+'</button>'}).join('')+'</div>'+(j===1?banksHtml(st.b||[]):'')+'</div>';});
+h+='<div class="st'+(n?" na":(v>=100?" done":""))+(atrasado(j,v,n)?" atr":"")+(j===P8?" s8card":"")+'" style="--c:var('+s[3]+')"><b><em>'+(j+1)+'. '+(j===P8?'Provisiones y conciliaciones bancarias':s[1])+' <small>· días '+s[2]+'</small></em><label class="nal"><input type="checkbox" class="nachk"'+(n?' checked':'')+'>No aplica</label></b>';
+h+='<input type="range" min="0" max="100" step="25" value="'+v+'" style="--p:'+v+'%" aria-label="'+esc(s[1])+'"'+(n?' disabled':'')+'><span>'+(n?'N/A':v+'%')+'</span><div class="opt">'+(j===P8?[0,50,100]:[0,25,50,75,100]).map(function(o){return '<button type="button" data-v="'+o+'"'+(o==v?' class="on"':'')+'>'+(j===P8?txt8(o):o+'%')+'</button>'}).join('')+'</div>'+(j===1?banksHtml(st.b||[]):'')+(j===P8?(function(){var ad=aldiaDe(c.emp);return '<div class="kbox"><label>Provisiones al día hasta '+selMes("kprov",ad.prov||"").replace(/<small[^>]*>.*<\/small>$/,"")+'<span class="kprovt">'+tagMes(ad.prov||"")+'</span></label><label>Conciliado hasta '+selMes("kconc",ad.conc||"").replace(/<small[^>]*>.*<\/small>$/,"")+'<span class="kconct">'+tagMes(ad.conc||"")+'</span></label></div>'})():'')+'</div>';});
 h+='<div class="foot"><input type="text" class="nota" value="'+esc(st.nota)+'" placeholder="Nota: qué falta (opcional)">';
 h+='<button type="button" class="btn g all">Todo al 100%</button><button type="button" class="btn sv">Guardar y siguiente</button><span class="msg"></span></div></div></details>';
 return h;}
@@ -295,7 +301,7 @@ var f=new URLSearchParams();f.append(E_WHO,who);f.append(E_EMP,label);STEPS.forE
 b.disabled=true;m.className="msg";m.textContent="Guardando…";
 fetch(FORM,{method:"POST",mode:"no-cors",body:f}).then(function(){
 var t=fh(new Date());
-save("v:"+MES_SEL+":"+who+":"+emp,{p:p,nota:nota,t:t,b:bks,ts:Date.now()});m.className="msg ok";m.textContent="Guardado ✓";$("#m"+d.dataset.i).textContent="Registrado "+t;b.disabled=false;irSiguiente(d);
+save("v:"+MES_SEL+":"+who+":"+emp,{p:p,nota:nota,t:t,b:bks,ts:Date.now()});var kp=d.querySelector(".kprov"),kc=d.querySelector(".kconc");if(kp)enviarAldia(emp,kp.value,kc.value).catch(function(){});m.className="msg ok";m.textContent="Guardado ✓";$("#m"+d.dataset.i).textContent="Registrado "+t;b.disabled=false;irSiguiente(d);
 }).catch(function(){m.className="msg bad";m.textContent="No se pudo guardar. Revisa tu internet e intenta otra vez.";b.disabled=false;});
 });
 // ---- eventos de cobranza (separados de los del avance)
@@ -338,18 +344,18 @@ var i=x.bx.dataset.i;["dt"+i,"cd"+i].forEach(function(id){var el=document.getEle
 var PL=false,ROWS=[],TIMER={},CICLO=[0,25,50,75,100,"na"],CICLO8=[0,50,100,"na"],P8=7;
 function txt8(v){return v>=100?"Listo":v>0?"En curso":"Sin empezar"}
 function celTxt(j,v,n){return n?"N/A":(j===P8?txt8(v):v)}
-var CORTO=["Planillas","EECC","Detrac.","PLAME 601","Reg. C/V","PDT 621","Reporte deudas","Concil."];
+var CORTO=["Planillas","EECC","Detrac.","PLAME 601","Reg. C/V","PDT 621","Reporte deudas","Provisiones"];
 function vistaPlanilla(){var v=load("vista");return v?v==="pl":window.innerWidth>=820}
 function estado(c){var st=load("v:"+MES_SEL+":"+who+":"+c.emp),na=load("na:"+who+":"+c.emp);
 var rm=REM[MES_SEL+"|"+who+"|"+c.emp];if(rm&&(!st||!st.ts||rm.ts>st.ts)){st={p:rm.p.slice(),nota:rm.nota,t:rm.t,b:rm.b};na=rm.na.slice();}
 st=st||{p:STEPS.map(function(){return 0}),nota:"",t:""};na=na||STEPS.map(function(){return false});return {st:st,na:na}}
-function planilla(items){ROWS=items.map(function(c){var e=estado(c);return {c:c,p:e.st.p.slice(),na:e.na.slice(),nota:e.st.nota||"",b:e.st.b||[],t:e.st.t||""}});
-return '<div class="hoy" id="hoyb">'+avisoHoy()+'</div><div class="leyenda"><b>8. Provisiones y conciliaciones:</b> toca para marcar <b>Sin empezar → En curso → Listo</b>. Si ya empezaste todas, usa «Todas en curso».</div><div class="leyenda">Toca una celda para cambiarla: <span><i style="background:#f1eff8"></i>0</span>→<span><i style="background:#fdf0d5"></i>25</span>→<span><i style="background:#fdf0d5"></i>50</span>→<span><i style="background:#d7ecc4"></i>75</span>→<span><i style="background:#2e7d32"></i>100</span>→<span><i style="border:1px dashed #cfcbe3"></i>N/A (no aplica)</span>· <b style="color:var(--ok)">Se guarda solo.</b></div>'
+function planilla(items){ROWS=items.map(function(c){var e=estado(c);var ad=aldiaDe(c.emp);return {c:c,p:e.st.p.slice(),na:e.na.slice(),nota:e.st.nota||"",b:e.st.b||[],t:e.st.t||"",prov:ad.prov||"",conc:ad.conc||""}});
+return '<div class="hoy" id="hoyb">'+avisoHoy()+'</div><div class="leyenda"><b>8. Provisiones</b> (las anteriores para ponerse al día + el mes actual) y <b>9. Conciliaciones bancarias</b>: elige <b>hasta qué mes</b> ya están al día. Si la empresa tiene varios bancos, pon el mes del banco más atrasado.</div><div class="leyenda">Toca una celda para cambiarla: <span><i style="background:#f1eff8"></i>0</span>→<span><i style="background:#fdf0d5"></i>25</span>→<span><i style="background:#fdf0d5"></i>50</span>→<span><i style="background:#d7ecc4"></i>75</span>→<span><i style="background:#2e7d32"></i>100</span>→<span><i style="border:1px dashed #cfcbe3"></i>N/A (no aplica)</span>· <b style="color:var(--ok)">Se guarda solo.</b></div>'
 +'<div class="tw"><table class="pl"><thead><tr><th style="text-align:left;padding-left:10px;width:22%">Empresa</th>'
-+STEPS.map(function(s,j){var vc=new Date()>plazo(j);return '<th'+(vc?' class="venc"':'')+' title="'+esc(s[1])+' · plazo '+ddmm(plazo(j))+'">'+(j+1)+'. '+CORTO[j]+'<small>días '+s[2]+(vc?' · venció':'')+'</small>'+(j===P8?'<button type="button" class="todas8">Todas en curso</button>':'')+'</th>'}).join("")
++STEPS.map(function(s,j){var vc=new Date()>plazo(j);return '<th'+(vc?' class="venc"':'')+' title="'+esc(s[1])+' · plazo '+ddmm(plazo(j))+'">'+(j+1)+'. '+CORTO[j]+'<small>días '+s[2]+(vc?' · venció':'')+'</small>'+(j===P8?'<em class="sub8">al día hasta</em></th><th'+(vc?' class="venc"':'')+' title="Conciliaciones bancarias · último mes conciliado">9. Conciliaciones<small>días '+s[2]+(vc?' · venció':'')+'</small><em class="sub8">conciliado hasta</em>':'')+'</th>'}).join("")
 +'<th>Total</th><th style="width:15%">Nota</th><th style="width:8%"></th><th style="width:9%">Fecha y hora<br>de registro</th></tr></thead><tbody>'+ROWS.map(filaPl).join("")+'</tbody></table></div>';}
 function filaPl(r,i){return '<tr data-r="'+i+'"><td class="e" title="'+esc(r.c.emp)+'">'+esc(corto(r.c.emp))+'</td>'
-+r.p.map(function(v,j){var n=r.na[j];return '<td><button type="button" class="cel '+(n?'vna':'v'+v)+(atrasado(j,v,n)?' atr':'')+(j===P8?' s8':'')+'" data-j="'+j+'" title="'+esc(STEPS[j][1])+(atrasado(j,v,n)?' · venció el '+ddmm(plazo(j)):'')+'">'+celTxt(j,v,n)+'</button></td>'}).join("")
++r.p.map(function(v,j){var n=r.na[j];if(j===P8)return tdsAldia(r);return '<td><button type="button" class="cel '+(n?'vna':'v'+v)+(atrasado(j,v,n)?' atr':'')+(j===P8?' s8':'')+'" data-j="'+j+'" title="'+esc(STEPS[j][1])+(atrasado(j,v,n)?' · venció el '+ddmm(plazo(j)):'')+'">'+celTxt(j,v,n)+'</button></td>'}).join("")
 +'<td class="tot" id="pt'+i+'">'+avgOf(r.p,r.na)+'%</td><td><input class="pnota" value="'+esc(r.nota)+'" placeholder="Qué falta (opcional)"></td>'
 +'<td><button type="button" class="btn g p100" style="padding:5px 9px;font-size:12px">Todo 100</button></td><td class="est"><small id="ps'+i+'"'+(r.t?' class="ok"':'')+'>'+(r.t?esc(r.t):"Sin registrar")+'</small></td></tr>'}
 function pintar(i){var r=ROWS[i],tr=document.querySelector('tr[data-r="'+i+'"]');if(!tr)return;
@@ -363,6 +369,7 @@ return fetch(FORM,{method:"POST",mode:"no-cors",body:f,keepalive:true}).then(fun
 var t=fh(new Date());
 save("v:"+MES_SEL+":"+who+":"+c.emp,{p:p.slice(),nota:nota,t:t,b:bks,ts:Date.now()});save("na:"+who+":"+c.emp,na.slice());return t;});}
 function guardarFila(i){var r=ROWS[i];if(!r)return;var s=$("#ps"+i);if(s){s.className="";s.textContent="Guardando…"}
+if(r.aldia){r.aldia=false;enviarAldia(r.c.emp,r.prov||"",r.conc||"").catch(function(){r.aldia=true})}
 enviarAvance(r.c,r.p,r.na,r.nota.trim(),r.b).then(function(t){r.t=t;var s=$("#ps"+i);if(s){s.className="ok";s.textContent=t+" ✓"}})
 .catch(function(){var s=$("#ps"+i);if(s){s.className="bad";s.textContent="Sin internet: no se guardó"}});}
 window.addEventListener("beforeunload",pendientes);
@@ -416,6 +423,31 @@ body:JSON.stringify({accion:"visita",k:UP_K,who:who,equipo:(/Mobi|Android|iPhone
 $("#list").addEventListener("click",function(e){if(!e.target.classList.contains("todas8"))return;var n=0;
 ROWS.forEach(function(r,i){if(!r.na[P8]&&r.p[P8]<50){r.p[P8]=50;pintar(i);programar(i);n++}});
 e.target.textContent=n?("✓ "+n+" en curso"):"Ya estaban";setTimeout(function(){e.target.textContent="Todas en curso"},2500);});
+// ---- v12: provisiones y conciliaciones «al día hasta [mes]»
+var ALDIA={},MCORTO=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Set","Oct","Nov","Dic"];
+function mesesOpc(){var y=Number(MES_SEL.slice(0,4)),m=Number(MES_SEL.slice(5,7)),out=[];while(y>2024||(y===2024&&m>=1)){out.push(y+"-"+(m<10?"0":"")+m);m--;if(!m){m=12;y--}}return out}
+function mlbl(v){return v==="na"?"No aplica":MCORTO[Number(v.slice(5,7))-1]+" "+v.slice(0,4)}
+function atrasoMeses(v){if(!v||v==="na")return null;var a=Number(MES_SEL.slice(0,4))*12+Number(MES_SEL.slice(5,7)),b=Number(v.slice(0,4))*12+Number(v.slice(5,7));return Math.max(a-b,0)}
+function pctParte(v){if(v==="na")return null;if(!v)return 0;return atrasoMeses(v)===0?100:50}
+function p8de(prov,conc){var a=[pctParte(prov),pctParte(conc)].filter(function(x){return x!==null});return a.length?{v:Math.round(a.reduce(function(s,x){return s+x},0)/a.length),na:false}:{v:0,na:true}}
+function estCls(v){var a=atrasoMeses(v);return v==="na"?"sna":a===null?"svacio":a===0?"sok":"satr"}
+function tagMes(v){var a=atrasoMeses(v);return a===0?'<small class="okm">✓ al día</small>':a?'<small class="atrm">atraso '+a+' mes'+(a>1?'es':'')+'</small>':''}
+function selMes(cls,v){return '<select class="'+cls+' smes '+estCls(v)+(new Date()>plazo(P8)&&atrasoMeses(v)!==0&&v!=="na"?' venc8':'')+'"><option value="">— elegir mes —</option>'+mesesOpc().map(function(x){return '<option value="'+x+'"'+(x===v?' selected':'')+'>'+mlbl(x)+'</option>'}).join('')+'<option value="na"'+(v==="na"?' selected':'')+'>No aplica</option></select>'+tagMes(v)}
+function aldiaDe(emp){return ALDIA[MES_SEL+"|"+who+"|"+emp]||{}}
+function tdsAldia(r){return '<td class="tdm">'+selMes("sprov",r.prov||"")+'</td><td class="tdm">'+selMes("sconc",r.conc||"")+'</td>'}
+function enviarAldia(emp,prov,conc){var reg={prov:prov,conc:conc};((who==="Kathy"||who==="Jenny")?["Kathy","Jenny"]:[who]).forEach(function(w){ALDIA[MES_SEL+"|"+w+"|"+emp]=reg});
+return fetch(UP_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({accion:"aldia",k:UP_K,who:who,emp:emp,mes:MES_SEL,prov:prov,conc:conc})}).then(function(r){return r.json()})}
+function cargarAldia(){fetch(UP_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({accion:"leer_aldia",k:UP_K})}).then(function(r){return r.json()}).then(function(j){
+if(!j.ok)return;(j.filas||[]).slice(1).forEach(function(f){var w=f[1],reg={prov:f[4],conc:f[5]};((w==="Kathy"||w==="Jenny")?["Kathy","Jenny"]:[w]).forEach(function(x){ALDIA[f[3]+"|"+x+"|"+f[2]]=reg})});
+if(who&&!Object.keys(TIMER).length){var c=load("conf:"+who);if(c)showAvance(c)}}).catch(function(){})}
+// planilla: cambio de mes
+$("#list").addEventListener("change",function(e){var sl=e.target;if(!sl.classList.contains("smes"))return;var tr=sl.closest("tr[data-r]");
+if(tr){var i=Number(tr.dataset.r),r=ROWS[i];if(sl.classList.contains("sprov"))r.prov=sl.value;else r.conc=sl.value;r.aldia=true;
+var x=p8de(r.prov,r.conc);r.p[P8]=x.v;r.na[P8]=x.na;var td=sl.parentElement;td.innerHTML=selMes(sl.classList.contains("sprov")?"sprov":"sconc",sl.value);pintar(i);programar(i);return}
+var st=sl.closest(".st");if(!st)return;var bx=st.querySelector(".kbox"),pv=bx.querySelector(".kprov").value,cv=bx.querySelector(".kconc").value,y=p8de(pv,cv);
+bx.querySelector(".kprovt").innerHTML=tagMes(pv);bx.querySelector(".kconct").innerHTML=tagMes(cv);
+var ck=st.querySelector(".nachk");if(ck.checked!==y.na){ck.checked=y.na;ck.dispatchEvent(new Event("change",{bubbles:true}))}
+var rg=st.querySelector("input[type=range]");rg.disabled=y.na;rg.value=y.v;rg.dispatchEvent(new Event("input",{bubbles:true}));});
 var REM={},REMEMP={};
 var PUB="https://docs.google.com/spreadsheets/d/e/2PACX-1vQC8hsPB-fp1TEA-fMBVW_-IxzHDOn2z_u8XRo-EqSFqi-_LLp0O19W_nkGtjrGHdy9QyfnXkvvBL7R/pub?gid=296229147&single=true&output=csv";
 function csv(s){var out=[],row=[],f="",q=false;for(var i=0;i<s.length;i++){var c=s[i];if(q){if(c=='"'){if(s[i+1]=='"'){f+='"';i++}else q=false}else f+=c}else if(c=='"')q=true;else if(c==","){row.push(f);f=""}else if(c=="\n"){row.push(f);out.push(row);row=[];f=""}else if(c!="\r")f+=c}if(f||row.length){row.push(f);out.push(row)}return out}
@@ -451,5 +483,6 @@ m.innerHTML='<p style="margin:0 0 12px">'+msg+'</p><button id="avok" style="widt
 document.getElementById("avok").onclick=function(){o.remove()};});
 }
 cargarRemoto();
+cargarAldia();
 var last=load("who");if(last&&EMP[last])pick(last);
 </script></body></html>
