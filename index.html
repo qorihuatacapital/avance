@@ -135,6 +135,9 @@ tr.cob td .cmsg{display:block;font-size:11px;color:var(--mu);white-space:nowrap}
 .cel.atr{box-shadow:0 0 0 2px #c62828;position:relative}.cel.atr:after{content:"!";position:absolute;top:-6px;right:-4px;background:#c62828;color:#fff;border-radius:50%;width:14px;height:14px;font-size:10px;line-height:14px}
 th.venc small{color:#c62828;font-weight:700}.hoy{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;background:#fff;border:1px solid var(--ln);border-left:5px solid #b8862a;border-radius:8px;padding:9px 12px;font-size:13.5px}
 .hoy b{color:#7a5a12}.hoy .malo{color:#c62828;font-weight:700}.st.atr{box-shadow:inset 4px 0 0 #c62828}.st.atr em:after{content:" · atrasado";color:#c62828;font-style:normal;font-weight:700;font-size:12px}
+
+.cel.s8{font-size:11px;padding:8px 2px;min-width:74px}.cel.s8.v0{background:#f1eff8;color:#7d7a99}.cel.s8.v50{background:#fdf0d5;color:#8a5a00}
+.todas8{display:block;margin:4px auto 0;padding:3px 7px;border:1px solid #b8862a;border-radius:6px;background:#fffaf0;color:#7a5a12;font:inherit;font-size:10.5px;font-weight:700;cursor:pointer}
 </style></head><body>
 <header><h1>Avance del mes · Qorihuata</h1><p>1) Elige tu nombre. 2) Confirma tus empresas. 3) Registra tu avance con las barras.</p></header>
 <main>
@@ -203,7 +206,7 @@ $("#who").innerHTML=Object.keys(EMP).map(function(n){return '<button type="butto
 $("#who").onclick=function(e){var b=e.target.closest("button");if(b)pick(b.dataset.n)};
 
 function pick(n){
-who=n;save("who",n);avisoEECC(n);
+who=n;save("who",n);if(n!=="Brenda"&&document.getElementById("avx"))document.getElementById("avx").remove();avisoEECC(n);
 document.querySelectorAll("#who button").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.n===n)});
 var conf=load("conf:"+n);
 if(conf)showAvance(conf);else startWizard();}
@@ -254,7 +257,7 @@ var h='<details data-i="'+i+'" data-label="'+esc(c.label)+'" data-emp="'+esc(c.e
 h+='<span class="bar"><i id="b'+i+'" style="width:'+avg+'%"></i></span><span class="meta" id="m'+i+'">'+(st.t?"Registrado "+esc(st.t):"Sin guardar aún")+'</span></summary><div class="steps">';
 STEPS.forEach(function(s,j){var v=st.p[j],n=!!na[j];
 h+='<div class="st'+(n?" na":(v>=100?" done":""))+(atrasado(j,v,n)?" atr":"")+'" style="--c:var('+s[3]+')"><b><em>'+(j+1)+'. '+s[1]+' <small>· días '+s[2]+'</small></em><label class="nal"><input type="checkbox" class="nachk"'+(n?' checked':'')+'>No aplica</label></b>';
-h+='<input type="range" min="0" max="100" step="25" value="'+v+'" style="--p:'+v+'%" aria-label="'+esc(s[1])+'"'+(n?' disabled':'')+'><span>'+(n?'N/A':v+'%')+'</span><div class="opt">'+[0,25,50,75,100].map(function(o){return '<button type="button" data-v="'+o+'"'+(o==v?' class="on"':'')+'>'+o+'%</button>'}).join('')+'</div>'+(j===1?banksHtml(st.b||[]):'')+'</div>';});
+h+='<input type="range" min="0" max="100" step="25" value="'+v+'" style="--p:'+v+'%" aria-label="'+esc(s[1])+'"'+(n?' disabled':'')+'><span>'+(n?'N/A':v+'%')+'</span><div class="opt">'+(j===P8?[0,50,100]:[0,25,50,75,100]).map(function(o){return '<button type="button" data-v="'+o+'"'+(o==v?' class="on"':'')+'>'+(j===P8?txt8(o):o+'%')+'</button>'}).join('')+'</div>'+(j===1?banksHtml(st.b||[]):'')+'</div>';});
 h+='<div class="foot"><input type="text" class="nota" value="'+esc(st.nota)+'" placeholder="Nota: qué falta (opcional)">';
 h+='<button type="button" class="btn g all">Todo al 100%</button><button type="button" class="btn sv">Guardar y siguiente</button><span class="msg"></span></div></div></details>';
 return h;}
@@ -332,23 +335,25 @@ d.t=t;d.ts=Date.now();save(cobKey(x.emp),d);save("hon:"+who+":"+x.emp,d.hon);x.b
 var i=x.bx.dataset.i;["dt"+i,"cd"+i].forEach(function(id){var el=document.getElementById(id);if(el)el.className="dot "+d.est});ok++;sig(k+1);
 }).catch(function(){var m=x.bx.querySelector(".cmsg");m.className="cmsg bad";m.textContent="No se pudo guardar (internet).";fallas++;sig(k+1);});})(0);}
 // ---- v6: vista PLANILLA tipo Excel (PC). En celular se usan las tarjetas.
-var PL=false,ROWS=[],TIMER={},CICLO=[0,25,50,75,100,"na"];
+var PL=false,ROWS=[],TIMER={},CICLO=[0,25,50,75,100,"na"],CICLO8=[0,50,100,"na"],P8=7;
+function txt8(v){return v>=100?"Listo":v>0?"En curso":"Sin empezar"}
+function celTxt(j,v,n){return n?"N/A":(j===P8?txt8(v):v)}
 var CORTO=["Planillas","EECC","Detrac.","PLAME 601","Reg. C/V","PDT 621","Reporte deudas","Concil."];
 function vistaPlanilla(){var v=load("vista");return v?v==="pl":window.innerWidth>=820}
 function estado(c){var st=load("v:"+MES_SEL+":"+who+":"+c.emp),na=load("na:"+who+":"+c.emp);
 var rm=REM[MES_SEL+"|"+who+"|"+c.emp];if(rm&&(!st||!st.ts||rm.ts>st.ts)){st={p:rm.p.slice(),nota:rm.nota,t:rm.t,b:rm.b};na=rm.na.slice();}
 st=st||{p:STEPS.map(function(){return 0}),nota:"",t:""};na=na||STEPS.map(function(){return false});return {st:st,na:na}}
 function planilla(items){ROWS=items.map(function(c){var e=estado(c);return {c:c,p:e.st.p.slice(),na:e.na.slice(),nota:e.st.nota||"",b:e.st.b||[],t:e.st.t||""}});
-return '<div class="hoy" id="hoyb">'+avisoHoy()+'</div><div class="leyenda">Toca una celda para cambiarla: <span><i style="background:#f1eff8"></i>0</span>→<span><i style="background:#fdf0d5"></i>25</span>→<span><i style="background:#fdf0d5"></i>50</span>→<span><i style="background:#d7ecc4"></i>75</span>→<span><i style="background:#2e7d32"></i>100</span>→<span><i style="border:1px dashed #cfcbe3"></i>N/A (no aplica)</span>· <b style="color:var(--ok)">Se guarda solo.</b></div>'
+return '<div class="hoy" id="hoyb">'+avisoHoy()+'</div><div class="leyenda"><b>8. Provisiones y conciliaciones:</b> toca para marcar <b>Sin empezar → En curso → Listo</b>. Si ya empezaste todas, usa «Todas en curso».</div><div class="leyenda">Toca una celda para cambiarla: <span><i style="background:#f1eff8"></i>0</span>→<span><i style="background:#fdf0d5"></i>25</span>→<span><i style="background:#fdf0d5"></i>50</span>→<span><i style="background:#d7ecc4"></i>75</span>→<span><i style="background:#2e7d32"></i>100</span>→<span><i style="border:1px dashed #cfcbe3"></i>N/A (no aplica)</span>· <b style="color:var(--ok)">Se guarda solo.</b></div>'
 +'<div class="tw"><table class="pl"><thead><tr><th style="text-align:left;padding-left:10px;width:22%">Empresa</th>'
-+STEPS.map(function(s,j){var vc=new Date()>plazo(j);return '<th'+(vc?' class="venc"':'')+' title="'+esc(s[1])+' · plazo '+ddmm(plazo(j))+'">'+(j+1)+'. '+CORTO[j]+'<small>días '+s[2]+(vc?' · venció':'')+'</small></th>'}).join("")
++STEPS.map(function(s,j){var vc=new Date()>plazo(j);return '<th'+(vc?' class="venc"':'')+' title="'+esc(s[1])+' · plazo '+ddmm(plazo(j))+'">'+(j+1)+'. '+CORTO[j]+'<small>días '+s[2]+(vc?' · venció':'')+'</small>'+(j===P8?'<button type="button" class="todas8">Todas en curso</button>':'')+'</th>'}).join("")
 +'<th>Total</th><th style="width:15%">Nota</th><th style="width:8%"></th><th style="width:9%">Fecha y hora<br>de registro</th></tr></thead><tbody>'+ROWS.map(filaPl).join("")+'</tbody></table></div>';}
 function filaPl(r,i){return '<tr data-r="'+i+'"><td class="e" title="'+esc(r.c.emp)+'">'+esc(corto(r.c.emp))+'</td>'
-+r.p.map(function(v,j){var n=r.na[j];return '<td><button type="button" class="cel '+(n?'vna':'v'+v)+(atrasado(j,v,n)?' atr':'')+'" data-j="'+j+'" title="'+esc(STEPS[j][1])+(atrasado(j,v,n)?' · venció el '+ddmm(plazo(j)):'')+'">'+(n?'N/A':v)+'</button></td>'}).join("")
++r.p.map(function(v,j){var n=r.na[j];return '<td><button type="button" class="cel '+(n?'vna':'v'+v)+(atrasado(j,v,n)?' atr':'')+(j===P8?' s8':'')+'" data-j="'+j+'" title="'+esc(STEPS[j][1])+(atrasado(j,v,n)?' · venció el '+ddmm(plazo(j)):'')+'">'+celTxt(j,v,n)+'</button></td>'}).join("")
 +'<td class="tot" id="pt'+i+'">'+avgOf(r.p,r.na)+'%</td><td><input class="pnota" value="'+esc(r.nota)+'" placeholder="Qué falta (opcional)"></td>'
 +'<td><button type="button" class="btn g p100" style="padding:5px 9px;font-size:12px">Todo 100</button></td><td class="est"><small id="ps'+i+'"'+(r.t?' class="ok"':'')+'>'+(r.t?esc(r.t):"Sin registrar")+'</small></td></tr>'}
 function pintar(i){var r=ROWS[i],tr=document.querySelector('tr[data-r="'+i+'"]');if(!tr)return;
-tr.querySelectorAll(".cel").forEach(function(b,j){var n=r.na[j];b.className="cel "+(n?"vna":"v"+r.p[j])+(atrasado(j,r.p[j],n)?" atr":"");b.textContent=n?"N/A":r.p[j]});$("#pt"+i).textContent=avgOf(r.p,r.na)+"%";avisoHoy();}
+tr.querySelectorAll(".cel").forEach(function(b,j){var n=r.na[j];b.className="cel "+(n?"vna":"v"+r.p[j])+(atrasado(j,r.p[j],n)?" atr":"")+(j===P8?" s8":"");b.textContent=celTxt(j,r.p[j],n)});$("#pt"+i).textContent=avgOf(r.p,r.na)+"%";avisoHoy();}
 function programar(i){var s=$("#ps"+i);if(s){s.className="";s.textContent="Guardando…"}clearTimeout(TIMER[i]);TIMER[i]=setTimeout(function(){delete TIMER[i];guardarFila(i)},2000)}
 function pendientes(){Object.keys(TIMER).forEach(function(i){clearTimeout(TIMER[i]);delete TIMER[i];guardarFila(Number(i))})}
 function enviarAvance(c,p,na,nota,bks){
@@ -362,7 +367,7 @@ enviarAvance(r.c,r.p,r.na,r.nota.trim(),r.b).then(function(t){r.t=t;var s=$("#ps
 .catch(function(){var s=$("#ps"+i);if(s){s.className="bad";s.textContent="Sin internet: no se guardó"}});}
 window.addEventListener("beforeunload",pendientes);
 $("#list").addEventListener("click",function(e){var tr=e.target.closest("tr[data-r]");if(!tr)return;var i=Number(tr.dataset.r),r=ROWS[i];
-var b=e.target.closest(".cel");if(b){var j=Number(b.dataset.j),cur=r.na[j]?"na":r.p[j],nx=CICLO[(CICLO.indexOf(cur)+1)%CICLO.length];
+var b=e.target.closest(".cel");if(b){var j=Number(b.dataset.j),cur=r.na[j]?"na":r.p[j],C=(j===P8?CICLO8:CICLO),ix=C.indexOf(cur),nx=ix<0?(j===P8?(cur>=100?"na":cur>0?100:50):C[0]):C[(ix+1)%C.length];
 if(nx==="na"){r.na[j]=true;r.p[j]=0}else{r.na[j]=false;r.p[j]=nx}pintar(i);programar(i);return}
 if(e.target.closest(".p100")){r.p=r.p.map(function(v,j){return r.na[j]?v:100});pintar(i);programar(i);}});
 $("#list").addEventListener("input",function(e){if(!e.target.classList.contains("pnota"))return;var i=Number(e.target.closest("tr").dataset.r);ROWS[i].nota=e.target.value;programar(i)});
@@ -408,6 +413,9 @@ if(el)el.innerHTML=h;return h}
 var VISTO={};
 function visita(tab){if(!who||VISTO[who+tab])return;VISTO[who+tab]=1;try{fetch(UP_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
 body:JSON.stringify({accion:"visita",k:UP_K,who:who,equipo:(/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?"Celular":"PC"),vista:(PL?"planilla":"tarjetas"),tab:(tab==="cb"?"Cobranza":"Avance")})}).catch(function(){})}catch(e){}}
+$("#list").addEventListener("click",function(e){if(!e.target.classList.contains("todas8"))return;var n=0;
+ROWS.forEach(function(r,i){if(!r.na[P8]&&r.p[P8]<50){r.p[P8]=50;pintar(i);programar(i);n++}});
+e.target.textContent=n?("✓ "+n+" en curso"):"Ya estaban";setTimeout(function(){e.target.textContent="Todas en curso"},2500);});
 var REM={},REMEMP={};
 var PUB="https://docs.google.com/spreadsheets/d/e/2PACX-1vQC8hsPB-fp1TEA-fMBVW_-IxzHDOn2z_u8XRo-EqSFqi-_LLp0O19W_nkGtjrGHdy9QyfnXkvvBL7R/pub?gid=296229147&single=true&output=csv";
 function csv(s){var out=[],row=[],f="",q=false;for(var i=0;i<s.length;i++){var c=s[i];if(q){if(c=='"'){if(s[i+1]=='"'){f+='"';i++}else q=false}else f+=c}else if(c=='"')q=true;else if(c==","){row.push(f);f=""}else if(c=="\n"){row.push(f);out.push(row);row=[];f=""}else if(c!="\r")f+=c}if(f||row.length){row.push(f);out.push(row)}return out}
