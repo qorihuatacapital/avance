@@ -233,7 +233,7 @@ verTab(load("tab")||"av");}
 var ITEMS=[];
 function corto(e){var x=e.replace(/[\s,]+(S\.?A\.?C\.?|E\.?I\.?R\.?L\.?|SOCIEDAD ANONIMA CERRADA|S\.?R\.?L\.?|S\.?A\.?)\.?\s*$/i,"").replace(/SERVICIOS GENERALES/i,"Serv. Gen.").replace(/^INMOBILIARIA\s+/i,"").replace(/\s*-\s*IPTM.*$/i,"");return x.length>24?x.slice(0,23)+"…":x}
 function chip(c,i){var k=load(cobKey(c.emp));return '<button type="button" id="ch'+i+'" data-go="'+i+'"><span class="dot '+(k&&k.est?k.est:'')+'" id="dt'+i+'"></span>'+esc(corto(c.emp))+' <em></em></button>'}
-function verTab(t){save("tab",t);document.querySelectorAll("[data-tab]").forEach(function(b){b.classList.toggle("on",b.dataset.tab===t)});
+function verTab(t){save("tab",t);visita(t);document.querySelectorAll("[data-tab]").forEach(function(b){b.classList.toggle("on",b.dataset.tab===t)});
 $("#pav").style.display=t==="av"?"flex":"none";$("#pcb").style.display=t==="cb"?"flex":"none";
 $("#hint").textContent=t==="av"?(PL?("Hola "+who+". Toca cada celda para marcar el avance de cada paso. Se guarda solo a los 2 segundos."):"Paso 3 de 3: hola "+who+". Toca una empresa (arriba o en la lista), mueve las barras y toca «Guardar y siguiente». Si un paso no corresponde, marca «No aplica»."):("Cobranza de "+MESANT+": marca el estado de cada empresa y toca «Guardar cobranza» al final. No cambia tu % de avance.");
 ITEMS.forEach(function(c,i){var ch=document.getElementById("ch"+i);if(ch){var d=document.querySelector('#pav details[data-i="'+i+'"]');ch.querySelector("em").textContent=t==="av"&&d?d.querySelector(".pc").textContent:""}})}
@@ -404,6 +404,10 @@ function ddmm(d){return (d.getDate()<10?"0":"")+d.getDate()+"/"+(d.getMonth()<9?
 function avisoHoy(){var n=0;ROWS.forEach(function(r){r.p.forEach(function(v,j){if(atrasado(j,v,r.na[j]))n++})});var t=hoyToca();
 var el=document.getElementById("hoyb");var h=(t.length?'<span>📅 <b>Hoy toca:</b> '+esc(t.join(" · "))+'</span>':'')+(n?'<span class="malo">⚠ '+n+' casilla'+(n===1?'':'s')+' atrasada'+(n===1?'':'s')+' (en rojo)</span>':'<span style="color:var(--ok);font-weight:700">✓ Nada atrasado según el cronograma</span>');
 if(el)el.innerHTML=h;return h}
+// ---- registro de visitas (quién entra aunque no guarde): una vez por persona y pestaña en cada carga de la página
+var VISTO={};
+function visita(tab){if(!who||VISTO[who+tab])return;VISTO[who+tab]=1;try{fetch(UP_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+body:JSON.stringify({accion:"visita",k:UP_K,who:who,equipo:(/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?"Celular":"PC"),vista:(PL?"planilla":"tarjetas"),tab:(tab==="cb"?"Cobranza":"Avance")})}).catch(function(){})}catch(e){}}
 var REM={},REMEMP={};
 var PUB="https://docs.google.com/spreadsheets/d/e/2PACX-1vQC8hsPB-fp1TEA-fMBVW_-IxzHDOn2z_u8XRo-EqSFqi-_LLp0O19W_nkGtjrGHdy9QyfnXkvvBL7R/pub?gid=296229147&single=true&output=csv";
 function csv(s){var out=[],row=[],f="",q=false;for(var i=0;i<s.length;i++){var c=s[i];if(q){if(c=='"'){if(s[i+1]=='"'){f+='"';i++}else q=false}else f+=c}else if(c=='"')q=true;else if(c==","){row.push(f);f=""}else if(c=="\n"){row.push(f);out.push(row);row=[];f=""}else if(c!="\r")f+=c}if(f||row.length){row.push(f);out.push(row)}return out}
