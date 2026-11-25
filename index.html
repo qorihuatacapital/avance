@@ -454,7 +454,7 @@ function tdsAldia(r){return '<td class="tdm">'+selMes("sprov",r.prov||"")+'</td>
 function enviarAldia(emp,prov,conc){var reg={prov:prov,conc:conc};((who==="Kathy"||who==="Jenny")?["Kathy","Jenny"]:[who]).forEach(function(w){ALDIA[MES_SEL+"|"+w+"|"+emp]=reg});
 return fetch(UP_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({accion:"aldia",k:UP_K,who:who,emp:emp,mes:MES_SEL,prov:prov,conc:conc})}).then(function(r){return r.json()})}
 function cargarAldia(){fetch(UP_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({accion:"leer_aldia",k:UP_K})}).then(function(r){return r.json()}).then(function(j){
-if(!j.ok)return;(j.filas||[]).slice(1).forEach(function(f){var w=f[1],reg={prov:f[4],conc:f[5]};((w==="Kathy"||w==="Jenny")?["Kathy","Jenny"]:[w]).forEach(function(x){ALDIA[f[3]+"|"+x+"|"+f[2]]=reg})});
+if(!j.ok)return;(j.filas||[]).slice(1).forEach(function(f){var w=f[1],lm=function(v){return v==="sin-nombre"?"":v},reg={prov:lm(f[4]),conc:lm(f[5])};((w==="Kathy"||w==="Jenny")?["Kathy","Jenny"]:[w]).forEach(function(x){ALDIA[f[3]+"|"+x+"|"+f[2]]=reg})});
 if(who&&!Object.keys(TIMER).length){var c=load("conf:"+who);if(c)showAvance(c)}}).catch(function(){})}
 // planilla: cambio de mes
 $("#list").addEventListener("change",function(e){var sl=e.target;if(!sl.classList.contains("smes"))return;var tr=sl.closest("tr[data-r]");
