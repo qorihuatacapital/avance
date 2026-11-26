@@ -455,7 +455,7 @@ function enviarAldia(emp,prov,conc){var reg={prov:prov,conc:conc};((who==="Kathy
 return fetch(UP_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({accion:"aldia",k:UP_K,who:who,emp:emp,mes:MES_SEL,prov:prov,conc:conc})}).then(function(r){return r.json()})}
 function cargarAldia(){fetch(UP_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({accion:"leer_aldia",k:UP_K})}).then(function(r){return r.json()}).then(function(j){
 if(!j.ok)return;(j.filas||[]).slice(1).forEach(function(f){var w=f[1],lm=function(v){return v==="sin-nombre"?"":v},reg={prov:lm(f[4]),conc:lm(f[5])};((w==="Kathy"||w==="Jenny")?["Kathy","Jenny"]:[w]).forEach(function(x){ALDIA[f[3]+"|"+x+"|"+f[2]]=reg})});
-if(who&&!Object.keys(TIMER).length){var c=load("conf:"+who);if(c)showAvance(c)}}).catch(function(){})}
+refrescar(false)}).catch(function(){})}
 // planilla: cambio de mes
 $("#list").addEventListener("change",function(e){var sl=e.target;if(!sl.classList.contains("smes"))return;var tr=sl.closest("tr[data-r]");
 if(tr){var i=Number(tr.dataset.r),r=ROWS[i];if(sl.classList.contains("sprov"))r.prov=sl.value;else r.conc=sl.value;r.aldia=true;
@@ -478,7 +478,7 @@ var na=[],p=[];for(var j=0;j<STEPS.length;j++){var v=(r[3+j]||"").trim();var x=(
 var nota=(r[12]||"").replace(/^Avance: \d+% \(sin contar pasos que no aplican\)\.\s*/,""),b=[];var mb=/^EECC \S+ recibidos: ([^.]*)\.\s*/.exec(nota);if(mb){b=mb[1].split(", ");nota=nota.slice(mb[0].length)}
 if(!p.some(function(x){return x>0})&&!na.some(function(x){return x})&&!nota.trim())return;
 ((w==="Kathy"||w==="Jenny")?["Kathy","Jenny"]:[w]).forEach(function(w){var mes=r[11];if(mes.indexOf("2026-11")===0&&dt<new Date(2026,10,14))mes="2026-10 · octubre";var k=mes+"|"+w+"|"+emp,old=REM[k];if(!old||dt.getTime()>=old.ts){REM[k]={p:p,na:na,nota:nota.trim(),b:b,ts:dt.getTime(),t:fh(dt)}}REMEMP[w+"|"+emp]=1;});});
-if(who){var c=load("conf:"+who);if(c)showAvance(c);else startWizard();}}).catch(function(){});}
+refrescar(true)}).catch(function(){});}
 var AVK="avisoEECC:2026-10:Brenda";
 function avisoEECC(n){
 if(n!=="Brenda"||load(AVK)||document.getElementById("avx"))return;
@@ -502,6 +502,14 @@ this.style.display="none";var m=document.getElementById("avm");m.style.display="
 m.innerHTML='<p style="margin:0 0 12px">'+msg+'</p><button id="avok" style="width:100%;padding:10px;border:0;border-radius:8px;background:#4f35c8;color:#fff;font-weight:700;cursor:pointer">Entendido, continuar</button>';
 document.getElementById("avok").onclick=function(){o.remove()};});
 }
+// ---- v15: los datos del servidor llegan unos segundos despues de abrir; no se repinta encima de lo que la persona esta llenando (antes borraba la cobranza sin guardar)
+function editando(){if(Object.keys(TIMER).length||document.querySelector("#pcb .cob.sucio")||document.querySelector("#pcb .cup:disabled"))return true;
+if(Array.prototype.some.call(document.querySelectorAll("#pav details .msg"),function(m){return /^(Sin guardar|Guardando)/.test(m.textContent)}))return true;
+var a=document.activeElement;return !!(a&&a.closest&&a.closest("#list")&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName))}
+var REFT=null;
+function refrescar(conWizard){clearTimeout(REFT);if(!who)return;var c=load("conf:"+who);if(!c){if(conWizard)startWizard();return}
+if(editando()){REFT=setTimeout(function(){refrescar(false)},3000);return}showAvance(c)}
+$("#list").addEventListener("input",function(e){if(!e.target.classList.contains("nota"))return;var d=e.target.closest("details");if(d)d.querySelector(".msg").textContent="Sin guardar"});
 cargarRemoto();
 cargarAldia();
 var last=load("who");if(last&&EMP[last])pick(last);
