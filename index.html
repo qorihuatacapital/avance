@@ -474,7 +474,7 @@ function cargarCob(){var w=who,m=MES_SEL,kk=w+"|"+m;if(!w||COBOK[kk])return;COBO
 fetch(UP_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({accion:"cob_leer",k:UP_K,who:w,mes:m})}).then(function(r){return r.json()}).then(function(j){
 if(!j.ok||who!==w||MES_SEL!==m)return;var cambio=false;Object.keys(j.cob||{}).forEach(function(emp){var r=j.cob[emp],key="cob:"+m+":"+w+":"+emp,loc=load(key);
 if(!loc||!loc.ts||loc.ts<r.ts){save(key,{hon:r.hon,est:r.est,mon:r.mon,fec:r.fec,med:r.med,cpe:r.cpe,nota:r.nota,cst:r.cst,t:r.t,ts:r.ts});if(r.hon)save("hon:"+w+":"+emp,r.hon);cambio=true}});
-if(cambio&&!document.querySelector(".cob.sucio")&&!Object.keys(TIMER).length){var c=load("conf:"+w);if(c)showAvance(c)}}).catch(function(){COBOK[kk]=0})}
+if(cambio)refrescar(false)}).catch(function(){COBOK[kk]=0})}
 var REM={},REMEMP={};
 var PUB="https://docs.google.com/spreadsheets/d/e/2PACX-1vQC8hsPB-fp1TEA-fMBVW_-IxzHDOn2z_u8XRo-EqSFqi-_LLp0O19W_nkGtjrGHdy9QyfnXkvvBL7R/pub?gid=296229147&single=true&output=csv";
 function csv(s){var out=[],row=[],f="",q=false;for(var i=0;i<s.length;i++){var c=s[i];if(q){if(c=='"'){if(s[i+1]=='"'){f+='"';i++}else q=false}else f+=c}else if(c=='"')q=true;else if(c==","){row.push(f);f=""}else if(c=="\n"){row.push(f);out.push(row);row=[];f=""}else if(c!="\r")f+=c}if(f||row.length){row.push(f);out.push(row)}return out}
