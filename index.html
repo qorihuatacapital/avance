@@ -254,7 +254,7 @@ $("#list").innerHTML='<div class="box" style="display:flex;justify-content:space
 +'<div class="chips" id="chips"'+(PL?' style="display:none"':'')+'>'+items.map(chip).join("")+'</div></div>'
 +'<div id="pav" style="display:flex;flex-direction:column;gap:10px">'+(PL?planilla(items):items.map(card).join(""))+'</div>'
 +'<div id="pcb" style="display:none;flex-direction:column;gap:10px">'+cobPanel(items)+'</div>';
-verTab(load("tab")||"av");fijarCabecera();}
+verTab(load("tab")||"av");fijarCabecera();cargarCob();}
 var ITEMS=[];
 function corto(e){var x=e.replace(/[\s,]+(S\.?A\.?C\.?|E\.?I\.?R\.?L\.?|SOCIEDAD ANONIMA CERRADA|S\.?R\.?L\.?|S\.?A\.?)\.?\s*$/i,"").replace(/SERVICIOS GENERALES/i,"Serv. Gen.").replace(/^INMOBILIARIA\s+/i,"").replace(/\s*-\s*IPTM.*$/i,"");return x.length>24?x.slice(0,23)+"…":x}
 function chip(c,i){var k=load(cobKey(c.emp));return '<button type="button" id="ch'+i+'" data-go="'+i+'"><span class="dot '+(k&&k.est?k.est:'')+'" id="dt'+i+'"></span>'+esc(corto(c.emp))+' <em></em></button>'}
@@ -349,13 +349,13 @@ envios.push({bx:bx,emp:emp,d:{hon:hon,est:est,mon:mon,fec:fec,med:med,cpe:cpe,no
 if(!envios.length){gm.className="cmsg bad";gm.textContent="Revisa las empresas marcadas en rojo.";return}
 b.disabled=true;gm.className="cmsg";gm.textContent="Guardando "+envios.length+"…";var ok=0,fallas=0;
 (function sig(k){if(k>=envios.length){b.disabled=false;$("#cobres").innerHTML=cobResumen();
-gm.className="cmsg "+(fallas||errores?"bad":"ok");gm.textContent=ok+" guardada"+(ok===1?"":"s")+" ✓"+(fallas?" · "+fallas+" sin internet, intenta otra vez":"")+(errores?" · "+errores+" por completar":"");return}
-var x=envios[k],d=x.d,f=new URLSearchParams();f.append(C_WHO,who);f.append(C_EMP,x.emp);f.append(C_PER,MES_SEL);f.append(C_HON,d.hon);f.append(C_EST,d.est);
-f.append(C_MON,d.mon);if(d.fec)f.append(C_FEC,d.fec);if(d.med)f.append(C_MED,d.med);if(d.cpe)f.append(C_CPE,d.cpe);var nt=(d.cst?"Constancia de pago: "+d.cst+(d.nota?" · ":""):"")+d.nota;if(nt)f.append(C_NOT,nt);
-fetch(FORM_COB,{method:"POST",mode:"no-cors",body:f}).then(function(){var t=fh(new Date());
+gm.className="cmsg "+(fallas||errores?"bad":"ok");gm.textContent=ok+" guardada"+(ok===1?"":"s")+" ✓"+(fallas?" · "+fallas+" NO se guardaron, toca Guardar otra vez":"")+(errores?" · "+errores+" por completar":"");return}
+var x=envios[k],d=x.d;var nt=(d.cst?"Constancia de pago: "+d.cst+(d.nota?" · ":""):"")+d.nota;
+fetch(UP_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({accion:"cob_guardar",k:UP_K,who:who,emp:x.emp,mes:MES_SEL,hon:d.hon,est:d.est,mon:d.mon,fec:d.fec||"",med:d.med||"",cpe:d.cpe||"",nota:nt})})
+.then(function(r){return r.json()}).then(function(j){if(!j||!j.ok)throw new Error((j&&j.error)||"sin respuesta");var t=fh(new Date());
 d.t=t;d.ts=Date.now();save(cobKey(x.emp),d);save("hon:"+who+":"+x.emp,d.hon);x.bx.classList.remove("sucio");var m=x.bx.querySelector(".cmsg");m.className="cmsg ok";m.textContent="Registrado "+t+" ✓";
 var i=x.bx.dataset.i;["dt"+i,"cd"+i].forEach(function(id){var el=document.getElementById(id);if(el)el.className="dot "+d.est});ok++;sig(k+1);
-}).catch(function(){var m=x.bx.querySelector(".cmsg");m.className="cmsg bad";m.textContent="No se pudo guardar (internet).";fallas++;sig(k+1);});})(0);}
+}).catch(function(e){var m=x.bx.querySelector(".cmsg");m.className="cmsg bad";m.textContent="NO se guardó ("+(e&&e.message||"internet")+"). Toca Guardar otra vez.";fallas++;sig(k+1);});})(0);}
 // ---- v6: vista PLANILLA tipo Excel (PC). En celular se usan las tarjetas.
 var PL=false,ROWS=[],TIMER={},CICLO=[0,25,50,75,100,"na"],CICLO8=[0,50,100,"na"],P8=7;
 function txt8(v){return v>=100?"Listo":v>0?"En curso":"Sin empezar"}
@@ -468,6 +468,13 @@ var rg=st.querySelector("input[type=range]");rg.disabled=y.na;rg.value=y.v;rg.di
 function corta(t){return String(t).replace(/\/\d{4}(?=\s)/,"")}
 function fijarCabecera(){var t=document.querySelector(".tabs");document.documentElement.style.setProperty("--thtop",(t?t.offsetHeight:0)+"px")}
 window.addEventListener("resize",fijarCabecera);
+// ---- v14: la cobranza guardada se trae de la hoja (sirve en cualquier PC o celular)
+var COBOK={};
+function cargarCob(){var w=who,m=MES_SEL,kk=w+"|"+m;if(!w||COBOK[kk])return;COBOK[kk]=1;
+fetch(UP_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({accion:"cob_leer",k:UP_K,who:w,mes:m})}).then(function(r){return r.json()}).then(function(j){
+if(!j.ok||who!==w||MES_SEL!==m)return;var cambio=false;Object.keys(j.cob||{}).forEach(function(emp){var r=j.cob[emp],key="cob:"+m+":"+w+":"+emp,loc=load(key);
+if(!loc||!loc.ts||loc.ts<r.ts){save(key,{hon:r.hon,est:r.est,mon:r.mon,fec:r.fec,med:r.med,cpe:r.cpe,nota:r.nota,cst:r.cst,t:r.t,ts:r.ts});if(r.hon)save("hon:"+w+":"+emp,r.hon);cambio=true}});
+if(cambio&&!document.querySelector(".cob.sucio")&&!Object.keys(TIMER).length){var c=load("conf:"+w);if(c)showAvance(c)}}).catch(function(){COBOK[kk]=0})}
 var REM={},REMEMP={};
 var PUB="https://docs.google.com/spreadsheets/d/e/2PACX-1vQC8hsPB-fp1TEA-fMBVW_-IxzHDOn2z_u8XRo-EqSFqi-_LLp0O19W_nkGtjrGHdy9QyfnXkvvBL7R/pub?gid=296229147&single=true&output=csv";
 function csv(s){var out=[],row=[],f="",q=false;for(var i=0;i<s.length;i++){var c=s[i];if(q){if(c=='"'){if(s[i+1]=='"'){f+='"';i++}else q=false}else f+=c}else if(c=='"')q=true;else if(c==","){row.push(f);f=""}else if(c=="\n"){row.push(f);out.push(row);row=[];f=""}else if(c!="\r")f+=c}if(f||row.length){row.push(f);out.push(row)}return out}
