@@ -159,6 +159,9 @@ td.tdp{white-space:nowrap}button.p100{padding:5px 7px;border:1px solid var(--ln)
 td.est small{font-size:10.5px}
 main.ancho #hint{display:none}main.ancho #list>.box:first-child{padding:6px 12px}main.ancho .leyenda{font-size:11.5px}main.ancho .tb button{padding:7px 10px}main.ancho .hoy{padding:6px 10px;font-size:12.5px}
 @media (max-width:1300px){main.ancho .tw{overflow-x:auto}table.pl th{position:static}}
+
+small.fsub{display:block;font-size:10px;color:#5d5a78;margin-top:2px;white-space:nowrap}.cdetw{display:flex;flex-direction:column;gap:3px;align-items:stretch}.cdetw b{font-size:11.5px;color:#7a5a12}select.cdet{font:inherit;font-size:11.5px;padding:4px 2px;border:1px solid var(--ln);border-radius:6px}
+input.hon[readonly]{background:#f6f4fd;color:#1b1b2f;font-weight:700}
 </style></head><body>
 <header><h1>Avance del mes · Qorihuata</h1><p>1) Elige tu nombre. 2) Confirma tus empresas. 3) Registra tu avance con las barras.</p></header>
 <main>
@@ -172,21 +175,26 @@ var FORM="https://docs.google.com/forms/d/e/1FAIpQLSfbtvi94Aehywh2SK3_qTuwgvULFT
 var FORM_COB="https://docs.google.com/forms/d/e/1FAIpQLSfhm7-JJsPopd47j4C_m0N4fqn1dL9cs2XcHT-gMdbARSDNkQ/formResponse";
 var C_WHO="entry.1911344112",C_EMP="entry.985908557",C_PER="entry.336774317",C_HON="entry.1523527826",C_EST="entry.1097130401",
 C_MON="entry.2085742585",C_FEC="entry.1370738613",C_MED="entry.880099782",C_CPE="entry.111373337",C_NOT="entry.1020459106";
-var HONORARIOS={}; // monto fijo de la factura por empresa (lo carga Jabes); si no está, la contadora lo escribe y se recuerda
+var HONORARIOS={},FACT={},DETS=["Depositada","Pendiente","No detrajo"];
+function facDe(emp){return FACT[emp]||null}
+function n2(x){return Number(x).toLocaleString("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function facSub(F){return F?'<small class="fsub">'+esc(F.fac)+(F.mon==="USD"?' · USD '+n2(F.usd)+' × '+F.tc:'')+'</small>':''}
+function detHtml(F,k){var v=k.dets||"";return '<span class="cdetw">'+(F&&F.det?'<b>S/ '+n2(F.det)+'</b>':'')+'<select class="cdet" title="Detracción del 12 % que el cliente deposita en la cuenta del Banco de la Nación"><option value="">—</option>'+DETS.map(function(x){return '<option'+(x===v?' selected':'')+(x==="No detrajo"?' title="Pagó el total de la factura sin descontar la detracción"':'')+'>'+x+'</option>'}).join('')+'</select></span>'} // monto fijo de la factura por empresa (lo carga Jabes); si no está, la contadora lo escribe y se recuerda
 var MEDIOS=["Transferencia","Yape / Plin","Efectivo","Depósito"],ESTADOS=["Pendiente","Parcial","Cobrado"];
 function cobKey(emp){return "cob:"+MES_SEL+":"+who+":"+emp}
-function cobHtml(c,i){var k=load(cobKey(c.emp))||{};var hon=HONORARIOS[c.emp]||k.hon||load("hon:"+who+":"+c.emp)||"";
+function cobHtml(c,i){var k=load(cobKey(c.emp))||{},F=facDe(c.emp);var hon=(F?String(F.pen):"")||HONORARIOS[c.emp]||k.hon||load("hon:"+who+":"+c.emp)||"";
 var est=k.est||"",med=k.med||"";
 return '<div class="cob fila" data-emp="'+esc(c.emp)+'" data-i="'+i+'" data-cst="'+esc(k.cst||"")+'"><h4><span class="dot '+est+'" id="cd'+i+'"></span>'+esc(c.emp)+'</h4>'
-+'<div class="row"><label>Monto factura S/</label><input type="number" min="0" step="0.01" class="mon hon" value="'+esc(hon)+'"'+(HONORARIOS[c.emp]?' readonly title="Monto fijo cargado por Jabes"':'')+' placeholder="0.00">'
++'<div class="row"><label>Monto factura S/'+facSub(F)+'</label><input type="number" min="0" step="0.01" class="mon hon" value="'+esc(hon)+'"'+((F||HONORARIOS[c.emp])?' readonly title="Monto de la factura emitida (cargado por Jabes)"':'')+' placeholder="0.00">'
 +'<label>Estado</label><div class="cbo est">'+ESTADOS.map(function(x){return '<button type="button" data-x="'+x+'"'+(x===est?' class="on"':'')+'>'+(x==="Parcial"?"Cobrado parcial":x)+'</button>'}).join('')+'</div></div>'
 +'<div class="row cpart"'+(est==="Parcial"?'':' style="display:none"')+'><label>Monto cobrado S/</label><input type="number" min="0" step="0.01" class="mon cmon" value="'+esc(k.mon||"")+'" placeholder="0.00"></div>'
 +'<div class="row cpag"'+(est&&est!=="Pendiente"?'':' style="display:none"')+'><label>Fecha de cobro</label><input type="date" class="cfec" value="'+esc(k.fec||"")+'">'
-+'<label>Medio</label><div class="cbo med">'+MEDIOS.map(function(x){return '<button type="button" data-x="'+x+'"'+(x===med?' class="on"':'')+'>'+x+'</button>'}).join('')+'</div><input type="text" class="ccpe" value="'+esc(k.cpe||"")+'" placeholder="N° factura (opcional)" style="width:180px">'+constHtml(k)+'</div>'
++'<label>Medio</label><div class="cbo med">'+MEDIOS.map(function(x){return '<button type="button" data-x="'+x+'"'+(x===med?' class="on"':'')+'>'+x+'</button>'}).join('')+'</div><input type="text" class="ccpe" value="'+esc(k.cpe||(F?F.fac:""))+'" placeholder="N° factura (opcional)" style="width:180px">'+constHtml(k)+'</div>'
++'<div class="row"><label>Detracción 12 % (Banco de la Nación)</label>'+detHtml(F,k)+'</div>'
 +'<div class="row"><input type="text" class="cnota" value="'+esc(k.nota||"")+'" placeholder="Nota (opcional): ej. paga a fin de mes"><span class="cmsg">'+(k.t?"Registrado "+esc(k.t):"Sin registrar")+'</span></div></div>';}
 function cobResumen(){var n={Cobrado:0,Parcial:0,Pendiente:0,no:0},cob=0,hon=0;ITEMS.forEach(function(c){var k=load(cobKey(c.emp));if(k&&k.est){n[k.est]++;cob+=Number(k.mon||0);hon+=Number(k.hon||0)}else n.no++});
 return '<b>Cobrado:</b> '+n.Cobrado+' · <b>Parcial:</b> '+n.Parcial+' · <b>Pendiente:</b> '+n.Pendiente+' · <b>Sin registrar:</b> '+n.no+(hon?' · <b>S/ '+cob.toFixed(2)+'</b> de S/ '+hon.toFixed(2):'')}
-function cobPanel(items){return '<div class="box"><p style="margin:0 0 6px;font-weight:700">💰 Cobranza de facturas del servicio contable de '+esc(MESANT)+'</p><p class="sub" style="margin:0 0 8px;font-size:12.5px;color:var(--mu)">Aparte del avance: no cambia tu %. Marca si cada cliente ya pagó los servicios contables del mes.</p><div class="cobres" id="cobres">'+cobResumen()+'</div></div>'
+function cobPanel(items){return '<div class="box"><p style="margin:0 0 6px;font-weight:700">💰 Cobranza de facturas del servicio contable de '+esc(MESANT)+'</p><p class="sub" style="margin:0 0 8px;font-size:12.5px;color:var(--mu)">Aparte del avance: no cambia tu %. Marca si cada cliente ya pagó la factura del servicio contable. <b>Cobrado</b> = pagó la factura (el total, o el total menos la detracción). La <b>detracción</b> se marca aparte: Depositada, Pendiente o No detrajo (pagó el total).</p><div class="cobres" id="cobres">'+cobResumen()+'</div></div>'
 +(PL?cobTabla(items):items.map(function(c,i){return cobHtml(c,i)}).join(""))
 +'<div class="cobfoot"><button type="button" class="btn" id="cobsave">Guardar cobranza</button><span class="cmsg" id="cobmsg"></span></div>'}
 function cobBadge(emp){var k=load(cobKey(emp));return k&&k.est?'<span class="cbadge '+k.est+'">'+(k.est==="Cobrado"?"Cobrado":k.est==="Parcial"?"Cobro parcial":"Cobro pendiente")+'</span>':''}
@@ -345,13 +353,14 @@ med=bx.querySelector("select.cmed")?bx.querySelector("select.cmed").value:on("me
 var err=!est?"Elige el estado.":!hon?"Escribe el monto de la factura.":(est==="Parcial"&&!mon)?"Escribe cuánto se cobró.":"";
 if(err){m.className="cmsg bad";m.textContent=err;errores++;return}
 if(est==="Cobrado")mon=hon;if(est==="Pendiente"){mon="0";fec="";med="";cpe=""}
-envios.push({bx:bx,emp:emp,d:{hon:hon,est:est,mon:mon,fec:fec,med:med,cpe:cpe,nota:nota,cst:est==="Pendiente"?"":(bx.dataset.cst||"")}});});
+var F=facDe(emp),dsel=bx.querySelector("select.cdet");
+envios.push({bx:bx,emp:emp,d:{hon:hon,est:est,mon:mon,fec:fec,med:med,cpe:cpe,nota:nota,cst:est==="Pendiente"?"":(bx.dataset.cst||""),det:F&&F.det?String(F.det):"",dets:dsel?dsel.value:""}});});
 if(!envios.length){gm.className="cmsg bad";gm.textContent="Revisa las empresas marcadas en rojo.";return}
 b.disabled=true;gm.className="cmsg";gm.textContent="Guardando "+envios.length+"…";var ok=0,fallas=0;
 (function sig(k){if(k>=envios.length){b.disabled=false;$("#cobres").innerHTML=cobResumen();
 gm.className="cmsg "+(fallas||errores?"bad":"ok");gm.textContent=ok+" guardada"+(ok===1?"":"s")+" ✓"+(fallas?" · "+fallas+" NO se guardaron, toca Guardar otra vez":"")+(errores?" · "+errores+" por completar":"");return}
 var x=envios[k],d=x.d;var nt=(d.cst?"Constancia de pago: "+d.cst+(d.nota?" · ":""):"")+d.nota;
-fetch(UP_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({accion:"cob_guardar",k:UP_K,who:who,emp:x.emp,mes:MES_SEL,hon:d.hon,est:d.est,mon:d.mon,fec:d.fec||"",med:d.med||"",cpe:d.cpe||"",nota:nt})})
+fetch(UP_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({accion:"cob_guardar",k:UP_K,who:who,emp:x.emp,mes:MES_SEL,hon:d.hon,est:d.est,mon:d.mon,fec:d.fec||"",med:d.med||"",cpe:d.cpe||"",nota:nt,det:d.det||"",dets:d.dets||""})})
 .then(function(r){return r.json()}).then(function(j){if(!j||!j.ok)throw new Error((j&&j.error)||"sin respuesta");var t=fh(new Date());
 d.t=t;d.ts=Date.now();save(cobKey(x.emp),d);save("hon:"+who+":"+x.emp,d.hon);x.bx.classList.remove("sucio");var m=x.bx.querySelector(".cmsg");m.className="cmsg ok";m.textContent="Registrado "+t+" ✓";
 var i=x.bx.dataset.i;["dt"+i,"cd"+i].forEach(function(id){var el=document.getElementById(id);if(el)el.className="dot "+d.est});ok++;sig(k+1);
@@ -394,17 +403,18 @@ var b=e.target.closest(".cel");if(b){var j=Number(b.dataset.j),cur=r.na[j]?"na":
 if(nx==="na"){r.na[j]=true;r.p[j]=0}else{r.na[j]=false;r.p[j]=nx}pintar(i);programar(i);return}
 if(e.target.closest(".p100")){r.p=r.p.map(function(v,j){return r.na[j]?v:100});pintar(i);programar(i);}});
 $("#list").addEventListener("input",function(e){if(!e.target.classList.contains("pnota"))return;var i=Number(e.target.closest("tr").dataset.r);ROWS[i].nota=e.target.value;programar(i)});
-function cobFila(c,i){var k=load(cobKey(c.emp))||{};var hon=HONORARIOS[c.emp]||k.hon||load("hon:"+who+":"+c.emp)||"";var est=k.est||"",med=k.med||"",pg=est&&est!=="Pendiente";
+function cobFila(c,i){var k=load(cobKey(c.emp))||{},F=facDe(c.emp);var hon=(F?String(F.pen):"")||HONORARIOS[c.emp]||k.hon||load("hon:"+who+":"+c.emp)||"";var est=k.est||"",med=k.med||"",pg=est&&est!=="Pendiente";
 return '<tr class="cob" data-emp="'+esc(c.emp)+'" data-i="'+i+'" data-cst="'+esc(k.cst||"")+'"><td class="e" title="'+esc(c.emp)+'"><span class="dot '+est+'" id="cd'+i+'" style="display:inline-block;margin-right:6px"></span>'+esc(corto(c.emp))+'</td>'
-+'<td><input type="number" min="0" step="0.01" class="hon" value="'+esc(hon)+'"'+(HONORARIOS[c.emp]?' readonly title="Monto fijo cargado por Jabes"':'')+' placeholder="0.00"></td>'
++'<td><input type="number" min="0" step="0.01" class="hon" value="'+esc(hon)+'"'+((F||HONORARIOS[c.emp])?' readonly title="Monto de la factura emitida (cargado por Jabes)"':'')+' placeholder="0.00">'+facSub(F)+'</td>'
 +'<td><div class="cbo est">'+ESTADOS.map(function(x){return '<button type="button" data-x="'+x+'"'+(x===est?' class="on"':'')+'>'+x+'</button>'}).join('')+'</div></td>'
 +'<td><span class="cpart"'+(est==="Parcial"?'':' style="display:none"')+'><input type="number" min="0" step="0.01" class="cmon" value="'+esc(k.mon||"")+'" placeholder="0.00"></span></td>'
 +'<td><span class="cpag"'+(pg?'':' style="display:none"')+'><input type="date" class="cfec" value="'+esc(k.fec||"")+'"></span></td>'
 +'<td><span class="cpag"'+(pg?'':' style="display:none"')+'><select class="cmed"><option value=""></option>'+MEDIOS.map(function(x){return '<option'+(x===med?' selected':'')+'>'+x+'</option>'}).join('')+'</select></span></td>'
-+'<td><span class="cpag"'+(pg?'':' style="display:none"')+'><input type="text" class="ccpe" value="'+esc(k.cpe||"")+'" placeholder="Opcional"></span></td>'
++'<td><span class="cpag"'+(pg?'':' style="display:none"')+'><input type="text" class="ccpe" value="'+esc(k.cpe||(F?F.fac:""))+'" placeholder="Opcional"></span></td>'
 +'<td><span class="cpag"'+(pg?'':' style="display:none"')+'>'+constHtml(k)+'</span></td>'
++'<td class="tdet">'+detHtml(F,k)+'</td>'
 +'<td><input type="text" class="cnota" value="'+esc(k.nota||"")+'" placeholder="Ej. paga a fin de mes"><span class="cmsg">'+(k.t?"Registrado "+esc(k.t):"Sin registrar")+'</span></td></tr>'}
-function cobTabla(items){return '<div class="tw"><table class="pl"><thead><tr><th style="text-align:left;padding-left:10px;width:20%">Empresa</th><th style="width:9%">Monto factura S/</th><th style="width:22%">Estado</th><th style="width:9%">Cobrado S/<small>si es parcial</small></th><th style="width:11%">Fecha de cobro</th><th style="width:10%">Medio</th><th style="width:9%">N° factura</th><th style="width:11%">Constancia<small>de pago</small></th><th>Nota</th></tr></thead><tbody>'
+function cobTabla(items){return '<div class="tw"><table class="pl"><thead><tr><th style="text-align:left;padding-left:10px;width:20%">Empresa</th><th style="width:9%">Monto factura S/</th><th style="width:22%">Estado</th><th style="width:9%">Cobrado S/<small>si es parcial</small></th><th style="width:11%">Fecha de cobro</th><th style="width:10%">Medio</th><th style="width:9%">N° factura</th><th style="width:10%">Constancia<small>de pago</small></th><th style="width:9%">Detracción<small>12 % al BN</small></th><th>Nota</th></tr></thead><tbody>'
 +items.map(cobFila).join("")+'</tbody></table></div>'}
 // ---- constancia de pago de la factura: se sube a Drive del dueño via Apps Script; el enlace va a la nota de cobranza
 var UP_URL="https://script.google.com/macros/s/AKfycbxCH7w5YuELqBnVZC_dGvZ1Pvy2nc7MVrpcKaZyWJTLxqv4Thsg5112-zuwdAv0j3qA/exec",UP_K="qc-cob-2026";
@@ -470,10 +480,11 @@ function fijarCabecera(){var t=document.querySelector(".tabs");document.document
 window.addEventListener("resize",fijarCabecera);
 // ---- v14: la cobranza guardada se trae de la hoja (sirve en cualquier PC o celular)
 var COBOK={};
-function cargarCob(){var w=who,m=MES_SEL,kk=w+"|"+m;if(!w||COBOK[kk])return;COBOK[kk]=1;
+var FACTK="";
+function cargarCob(){var w=who,m=MES_SEL,kk=w+"|"+m;if(FACTK!==kk){FACTK=kk;FACT={};COBOK[kk]=0}if(!w||COBOK[kk])return;COBOK[kk]=1;
 fetch(UP_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({accion:"cob_leer",k:UP_K,who:w,mes:m})}).then(function(r){return r.json()}).then(function(j){
-if(!j.ok||who!==w||MES_SEL!==m)return;var cambio=false;Object.keys(j.cob||{}).forEach(function(emp){var r=j.cob[emp],key="cob:"+m+":"+w+":"+emp,loc=load(key);
-if(!loc||!loc.ts||loc.ts<r.ts){save(key,{hon:r.hon,est:r.est,mon:r.mon,fec:r.fec,med:r.med,cpe:r.cpe,nota:r.nota,cst:r.cst,t:r.t,ts:r.ts});if(r.hon)save("hon:"+w+":"+emp,r.hon);cambio=true}});
+if(!j.ok||who!==w||MES_SEL!==m)return;var cambio=false;if(j.fact&&Object.keys(j.fact).length){FACT=j.fact;cambio=true}Object.keys(j.cob||{}).forEach(function(emp){var r=j.cob[emp],key="cob:"+m+":"+w+":"+emp,loc=load(key);
+if(!loc||!loc.ts||loc.ts<r.ts){save(key,{hon:r.hon,est:r.est,mon:r.mon,fec:r.fec,med:r.med,cpe:r.cpe,nota:r.nota,cst:r.cst,dets:r.dets||"",t:r.t,ts:r.ts});if(r.hon)save("hon:"+w+":"+emp,r.hon);cambio=true}});
 if(cambio)refrescar(false)}).catch(function(){COBOK[kk]=0})}
 var REM={},REMEMP={};
 var PUB="https://docs.google.com/spreadsheets/d/e/2PACX-1vQC8hsPB-fp1TEA-fMBVW_-IxzHDOn2z_u8XRo-EqSFqi-_LLp0O19W_nkGtjrGHdy9QyfnXkvvBL7R/pub?gid=296229147&single=true&output=csv";
